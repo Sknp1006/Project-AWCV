@@ -5,7 +5,6 @@
 
 int main(int argc, char *argv[])
 {
-    // std::cout << "欢迎使用算法测试工具，请开始你的表演！" << std::endl;
     fprintf(stdout, "欢迎使用算法测试工具，请开始你的表演！\n");
     // cv::Mat img = cv::imread(R"(..\data\images\025.jpg)");
     // // cv::imshow("img", img);
@@ -18,5 +17,6 @@ int main(int argc, char *argv[])
     //     t_zoomGray(img, temp);
     // }
 
-    testFaceDetectorDNN();//人脸检测（OK）
+    // testFaceDetectorDNN();//人脸检测（OK）
+    testTextureExtrace();
 }

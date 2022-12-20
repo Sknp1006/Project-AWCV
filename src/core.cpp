@@ -114,7 +114,7 @@ void awcv::gammaImage(cv::Mat InMat, cv::Mat &OutMat, float Gamma)
 void awcv::autoGammaImage(cv::Mat InMat, cv::Mat &OutMat, float C)
 {
     auto meanGray = cv::mean(InMat)[0];
-    float gamma_val = log10(1 - C) / log10(1 - meanGray / 255.0f); // 自动gamma参数
+    float gamma_val = static_cast<float>(log10(1 - C) / log10(1 - meanGray / 255.0f)); // 自动gamma参数
     awcv::gammaImage(InMat, OutMat, gamma_val);
 }
 //---------------------------------------------------------------------------------------------------------------------------------------

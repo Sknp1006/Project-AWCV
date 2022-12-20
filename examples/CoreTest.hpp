@@ -545,7 +545,7 @@ inline void testSFM()
 #pragma region 临时算法测试
 inline void FaceDetectDNNEval(std::string Path, std::string Save)
 {
-    std::string model = R"(C:\Users\74001\source\repos\antiSpoofingDetector\x64\Release\data\face_detection_yunet_2022mar.onnx)";
+    std::string model = R"(..\data\face_detection_yunet_2022mar.onnx)";
     FaceDetectorDNN::param Param;
     FaceDetectorDNN faceHandle = FaceDetectorDNN(model, Param);
 
@@ -580,7 +580,7 @@ inline void testTextureExtrace()
 {
     int deviceID = 0;
     cv::VideoCapture Camera;
-    Camera.open(deviceID, cv::CAP_MSMF);
+    Camera.open(deviceID, cv::CAP_ANY);
 
     // cv::Ptr<cv::SIFT> sift = cv::SIFT::create();                                    //特征提取：普通
     cv::Ptr<cv::ORB> orb = cv::ORB::create(50); // 特征提取：很快
@@ -607,7 +607,7 @@ inline void testTextureExtrace()
     double k = 0.04;
 
     // 制作模板
-    cv::Mat templete = cv::imread(R"(C:\Users\74001\Desktop\微信图片_20221118095251 (2).jpg)");
+    cv::Mat templete = cv::imread(R"(C:\Users\74001\Desktop\QQ图片20221118153220.jpg)");
     awcv::bgr2gray(templete, templete);
     std::vector<cv::KeyPoint> keyTemplete; // 模板的关键点
     cv::Mat descTemplete;
@@ -615,7 +615,7 @@ inline void testTextureExtrace()
     cv::KeyPoint::convert(corners, keyTemplete);
     orb->detectAndCompute(templete, cv::Mat(), keyTemplete, descTemplete, true);
     cv::drawKeypoints(templete, keyTemplete, templete, cv::Scalar(0, 0, 255));
-    cv::imshow("模板的点", templete);
+    cv::imshow("templete", templete);
 
     cv::Mat frame, Matches;
     std::vector<cv::KeyPoint> keyPts;
@@ -670,7 +670,7 @@ inline void testTextureExtrace()
             // }
             ////std::cout << goodMatches.size() << std::endl;
             cv::drawMatches(templete, keyTemplete, frame, keyPts, matches, Matches);
-            cv::imshow("匹配点", Matches);
+            cv::imshow("match", Matches);
         }
         catch (cv::Exception e)
         {
@@ -681,7 +681,7 @@ inline void testTextureExtrace()
         tm.stop();
         // cv::waitKey(0);
         cv::putText(frame, cv::format("FPS: %.2f", tm.getFPS()), cv::Point2i(0, 15), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0));
-        cv::imshow("画个图", frame);
+        cv::imshow("draw", frame);
         tm.reset();
     }
 }
