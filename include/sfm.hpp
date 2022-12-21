@@ -9,7 +9,6 @@
 #include <opencv2/sfm.hpp>
 #include <opencv2/viz.hpp>
 
-
 namespace awcv
 {
 namespace sfm

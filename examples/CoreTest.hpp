@@ -458,7 +458,7 @@ inline void testSFM()
 {
     awcv::sfm::SFM my_sfm = awcv::sfm::SFM(R"(C:\Users\74001\source\repos\CameraCalibration-OpenCV\CameraCalibration-OpenCV\save_cc\CameraMatrix.bin)"); // 相机内参
 
-    std::string model = R"(C:\Users\74001\source\repos\antiSpoofingDetector\x64\Release\data\face_detection_yunet_2022mar.onnx)";
+    std::string model = R"(..\data\face_detection_yunet_2022mar.onnx)";
     FaceDetectorDNN::param Param;
     FaceDetectorDNN faceHandle = FaceDetectorDNN(model, Param);
 
