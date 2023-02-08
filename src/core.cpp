@@ -373,6 +373,44 @@ void awcv::gaborFilter(cv::Mat InMat, cv::Mat &OutMat, int KernelSize, double Si
 void awcv::wlsFilter(cv::Mat InMat, cv::Mat &OutMat, float Sigma, float Lambda, int SolverIteration)
 {
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 功能:图像增强（基于平均值）
+// 参数:
+//          InMat:          输入图像
+//          OutMat:         输出图像
+//--------------------------------------------------------------------------------------------------------------------------------------
+void awcv::enhanceImageByMean(cv::Mat InMat, cv::Mat &OutMat)
+{
+    // 算法流程：
+    if (InMat.channels() == 3)
+        cv::cvtColor(InMat, InMat, cv::COLOR_BGR2GRAY);
+    // ①求整张图的平均灰度值m;
+    int MeanGray = static_cast<int>(cv::mean(InMat)[0]);
+    // ②分别求0~m的平均灰度值m1，m~255之间的平均灰度值m2;
+    cv::Mat thres_m1;
+    cv::Mat thres_m2;
+    cv::threshold(InMat, thres_m1, 0, MeanGray, cv::THRESH_BINARY);
+    cv::threshold(InMat, thres_m2, MeanGray, 255, cv::THRESH_BINARY);
+    int m1 = static_cast<int>(cv::mean(InMat, thres_m1)[0]);
+    int m2 = static_cast<int>(cv::mean(InMat, thres_m2)[0]);
+    // ③将m1~m2区间映射到0~255之间;
+
+
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 功能:图像增强（基于OTSU）
+// 参数:
+//          InMat:          输入图像
+//          OutMat:         输出图像
+//--------------------------------------------------------------------------------------------------------------------------------------
+void awcv::enhanceImageByOTSU(cv::Mat InMat, cv::Mat &Outmat)
+{
+    // 使用OTSU的灰度值替换平均灰度值
+    if (InMat.channels() == 3)
+        cv::cvtColor(InMat, InMat, cv::COLOR_BGR2GRAY);
+    cv::Mat thres; double otsu = cv::threshold(InMat, thres, 0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
+
+}
 
 //--------------------------------------------------------------------------------------------------------------------------------------
 // 下面是一些通用类的实现
