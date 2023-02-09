@@ -51,6 +51,11 @@ void invertImage(cv::Mat InMat, cv::Mat &OutMat);
 void gaborFilter(cv::Mat InMat, cv::Mat &OutMat, int KernelSize, double Sigma, double Theta, double Lambd, double Gamma, double Psi);
 // 加权最小二乘滤波（未实现）
 void wlsFilter(cv::Mat InMat, cv::Mat &OutMat, float Sigma, float Lambda, int SolverIteration);
+// 图像增强（基于平均值）
+void enhanceImageByMean(cv::Mat InMat, cv::Mat &OutMat);
+// 图像增强（基于OTSU）
+void enhanceImageByOTSU(cv::Mat InMat, cv::Mat &Outmat);
+
 
 //--------------------------------------------------------------------------------------------------------------------------------------
 // 下面是一些通用类的声明
