@@ -18,5 +18,5 @@ int main(int argc, char *argv[])
     // }
 
     // testFaceDetectorDNN();//人脸检测（OK）
-    testTextureExtrace();
+    // testTextureExtrace();
 }
