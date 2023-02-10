@@ -1,4 +1,7 @@
 #include "core.hpp"
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 //--------------------------------------------------------------------------------------------------------------------------------------
 // 功能:BGR转灰度图
 // 参数:
@@ -43,6 +46,48 @@ void awcv::resize(cv::Mat &InOutMat, cv::Size Size)
     }
     // copyMakeBorder(InOutMat, InOutMat, 0, Size.height - InOutMat.rows, 0,
     // Size.width - InOutMat.cols, cv::BORDER_CONSTANT, cv::Scalar::all(0));
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 功能:求满足区间条件的二值化图像
+// 参数:
+//          InMat:          输入图像
+//          OutMat:         输出图像
+//          MinGray:        输入区间最小值
+//          MaxGray:        输入区间最大值
+//--------------------------------------------------------------------------------------------------------------------------------------
+void awcv::threshold(cv::Mat InMat, cv::Mat &OutMat, double MinGray, double MaxGray)
+{
+    cv::Mat temp = InMat.clone();
+    if (temp.channels() == 3)
+        cv::cvtColor(temp, temp, cv::COLOR_BGR2GRAY);
+    cv::Mat thresMin, thresMax;
+    cv::threshold(temp, thresMin, MinGray, 255, cv::THRESH_BINARY_INV);
+    cv::threshold(temp, thresMax, MaxGray, 255, cv::THRESH_BINARY);
+    awcv::invertImage(thresMin + thresMax, OutMat);
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 功能:缩放图像灰度
+// 参数:
+//          InMat:          输入图像
+//          OutMat:         输出图像
+//          MinGray:        输入区间最小值
+//          MaxGray:        输入区间最大值
+//--------------------------------------------------------------------------------------------------------------------------------------
+void awcv::scaleImage(cv::Mat InMat, cv::Mat &OutMat, double MinGray, double MaxGray)
+{
+    cv::Mat temp = InMat.clone(); //值传递的Mat，形参和实参指向同一个地址，修改形参也会修改实参
+    if (temp.channels() == 3)
+        cv::cvtColor(temp, temp, cv::COLOR_BGR2GRAY);
+    // 根据公式计算
+    double mult = static_cast<double>(255.0f / (MinGray + MaxGray));
+    double add = static_cast<double>(-mult * MinGray);
+    unsigned char lut[256];
+    for (int i = 0; i < 256; i++)
+    {
+        lut[i] = cv::saturate_cast<uchar>(i * mult + add);
+    }
+    cv::Mat Lut(1, 256, CV_8UC1, lut); // 使用lut映射
+    cv::LUT(InMat, Lut, OutMat);
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 // 功能:将灰度范围映射到【1-L】
@@ -378,40 +423,89 @@ void awcv::wlsFilter(cv::Mat InMat, cv::Mat &OutMat, float Sigma, float Lambda, 
 // 参数:
 //          InMat:          输入图像
 //          OutMat:         输出图像
+//          Min:            灰度区间最小值
+//          Max:            灰度区间最大值
 //--------------------------------------------------------------------------------------------------------------------------------------
-void awcv::enhanceImageByMean(cv::Mat InMat, cv::Mat &OutMat)
+void awcv::enhanceImageByMean(cv::Mat InMat, cv::Mat &OutMat, double &Min, double &Max)
 {
     // 算法流程：
     if (InMat.channels() == 3)
         cv::cvtColor(InMat, InMat, cv::COLOR_BGR2GRAY);
-    // ①求整张图的平均灰度值m;
-    int MeanGray = static_cast<int>(cv::mean(InMat)[0]);
-    // ②分别求0~m的平均灰度值m1，m~255之间的平均灰度值m2;
-    cv::Mat thres_m1;
-    cv::Mat thres_m2;
-    cv::threshold(InMat, thres_m1, 0, MeanGray, cv::THRESH_BINARY);
-    cv::threshold(InMat, thres_m2, MeanGray, 255, cv::THRESH_BINARY);
-    int m1 = static_cast<int>(cv::mean(InMat, thres_m1)[0]);
-    int m2 = static_cast<int>(cv::mean(InMat, thres_m2)[0]);
+    if (Min > 0 && Max > 0 && Max > Min)
+    {
+
+
+    }
+    else if (Min == 0 && Max == 0)
+    {
+        // ①求整张图的平均灰度值MeanGray;
+        int MeanGray = static_cast<int>(cv::mean(InMat)[0]);
+        // ②分别求0~m的平均灰度值m1，m~255之间的平均灰度值m2;
+        cv::Mat mask_black; // cv::threshold(InMat, mask_m1, MeanGray, 255, cv::THRESH_BINARY_INV);
+        cv::Mat mask_white; // cv::threshold(InMat, mask_m2, MeanGray, 255, cv::THRESH_BINARY);
+        // 第一次
+        awcv::threshold(InMat, mask_black, 0, MeanGray);       // 求目标区间区域
+        awcv::threshold(InMat, mask_white, MeanGray, 255);     // 稍微丢失了点小数点后两位精度
+        cv::Scalar meanB1, meanW1, devB1, devW1;
+        cv::meanStdDev(InMat, meanB1, devB1, mask_black);     // 第一次：black区间灰度均值方差
+        cv::meanStdDev(InMat, meanW1, devW1, mask_white);     // 第一次：white区间灰度均值方差
+        // std::cout << "black1:" << meanB1[0] << std::endl;
+        // std::cout << "white1:" << meanW1[0] << std::endl;
+        // 第二次
+        awcv::threshold(InMat, mask_black, 0, meanB1[0]);
+        awcv::threshold(InMat, mask_white, meanW1[0], 255);
+        cv::Scalar meanB2, meanW2, devB2, devW2;
+        cv::meanStdDev(InMat, meanB2, devB2, mask_black);     // 第二次：black区间灰度均值方差
+        cv::meanStdDev(InMat, meanW2, devW2, mask_white);     // 第二次：white区间灰度均值方差
+        // std::cout << "black2:" << meanB2[0] << std::endl;
+        // std::cout << "white2:" << meanW2[0] << std::endl;
+        Min = meanB2[0] + devB2[0];
+        Max = meanW1[0] - 2*devB1[0];
+    }
+    else 
+    {
+        // 错误
+        return;
+    }
     // ③将m1~m2区间映射到0~255之间;
-
-
+    awcv::scaleImage(InMat, OutMat, Min, Max);
+    // cv::imshow("scale", OutMat);
+    // awcv::threshold(OutMat, OutMat, 0, 220);
+    // cv::threshold(OutMat, OutMat, 0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
+    // cv::morphologyEx(OutMat, OutMat, cv::MORPH_OPEN, cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(1, 1)));
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 // 功能:图像增强（基于OTSU）
 // 参数:
 //          InMat:          输入图像
 //          OutMat:         输出图像
+//          Thres:          OTSU的阈值
 //--------------------------------------------------------------------------------------------------------------------------------------
-void awcv::enhanceImageByOTSU(cv::Mat InMat, cv::Mat &Outmat)
+void awcv::enhanceImageByOTSU(cv::Mat InMat, cv::Mat &OutMat, int &Thres)
 {
     // 使用OTSU的灰度值替换平均灰度值
     if (InMat.channels() == 3)
         cv::cvtColor(InMat, InMat, cv::COLOR_BGR2GRAY);
-    cv::Mat thres; double otsu = cv::threshold(InMat, thres, 0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
-
+    if (Thres == 0)
+    {
+        cv::Mat thres; double otsu = cv::threshold(InMat, thres, 0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
+        Thres = static_cast<int>(otsu);
+    }
+    cv::Mat mask_black; awcv::threshold(InMat, mask_black, 0, Thres);
+    cv::Mat mask_white; awcv::threshold(InMat, mask_white, Thres, 255);
+    cv::Scalar meanB1, meanW1, devB1, devW1;
+    cv::meanStdDev(InMat, meanB1, devB1, mask_black);
+    cv::meanStdDev(InMat, meanW1, devW1, mask_white);
+    awcv::threshold(InMat, mask_black, 0, meanB1[0]);
+    awcv::threshold(InMat, mask_white, meanW1[0], 255);
+    cv::Scalar meanB2, meanW2, devB2, devW2;
+    cv::meanStdDev(InMat, meanB2, devB2, mask_black);
+    cv::meanStdDev(InMat, meanW2, devW2, mask_white);
+    double Min = meanB2[0] + devB2[0];
+    double Max = meanW1[0] - 2*devB1[0];
+    
+    awcv::scaleImage(InMat, OutMat, Min, Max);
 }
-
 //--------------------------------------------------------------------------------------------------------------------------------------
 // 下面是一些通用类的实现
 //--------------------------------------------------------------------------------------------------------------------------------------

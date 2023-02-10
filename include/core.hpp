@@ -23,6 +23,8 @@ enum DecomTypes
 void bgr2gray(cv::Mat InMat, cv::Mat &OutMat);                                                     // 转灰度图
 void resize(cv::Mat &InOutMat, double Ratio);                                                      // 按比例改变图像大小
 void resize(cv::Mat &InOutMat, cv::Size Size);                                                     // 等比例改变图像大小
+void threshold(cv::Mat InMat, cv::Mat &OutMat, double MinGray, double MaxGray);                    // 根据区间二值化
+void scaleImage(cv::Mat InMat, cv::Mat &OutMat, double MinGray, double MaxGray);                   // 缩放图像灰度值
 void zoomGray(cv::Mat &InOutMat, int MaxGrayLevel);                                                // 灰度映射
 void gammaImage(cv::Mat InMat, cv::Mat &OutMat, float Gamma);                                      // 伽马矫正
 void autoGammaImage(cv::Mat InMat, cv::Mat &OutMat, float C);                                      // 自动伽马矫正
@@ -52,9 +54,9 @@ void gaborFilter(cv::Mat InMat, cv::Mat &OutMat, int KernelSize, double Sigma, d
 // 加权最小二乘滤波（未实现）
 void wlsFilter(cv::Mat InMat, cv::Mat &OutMat, float Sigma, float Lambda, int SolverIteration);
 // 图像增强（基于平均值）
-void enhanceImageByMean(cv::Mat InMat, cv::Mat &OutMat);
+void enhanceImageByMean(cv::Mat InMat, cv::Mat &OutMat, double &M1, double &M2);
 // 图像增强（基于OTSU）
-void enhanceImageByOTSU(cv::Mat InMat, cv::Mat &Outmat);
+void enhanceImageByOTSU(cv::Mat InMat, cv::Mat &OutMat, int &Thres);
 
 
 //--------------------------------------------------------------------------------------------------------------------------------------
