@@ -1,4 +1,5 @@
 #pragma once
+#include <opencv2/highgui.hpp>
 #ifndef H_AWCV_TEST
 #define H_AWCV_TEST
 
@@ -158,6 +159,20 @@ inline void initLogImageTrackbar()
     int value = 1;
     cv::createTrackbar("Const", "logImage", &value, 1000, __TrackbarCallback);
 }
+inline void initEnhanceImageByMean()
+{
+    cv::namedWindow("enhanceImageByMean", cv::WINDOW_NORMAL);
+    int min = 0;
+    int max = 0;
+    cv::createTrackbar("MinBlack", "enhanceImageByMean", &min, 255, __TrackbarCallback);
+    cv::createTrackbar("MaxWhite", "enhanceImageByMean", &max, 255, __TrackbarCallback);
+}
+inline void initEnhanceImageByOTSU()
+{
+    cv::namedWindow("enhanceImageByOTSU", cv::WINDOW_NORMAL);
+    int thres = 0;
+    cv::createTrackbar("thres", "enhanceImageByOTSU", &thres, 255, __TrackbarCallback);
+}
 #pragma endregion
 
 #pragma region 测试算法封装
@@ -249,6 +264,20 @@ inline void t_logImage(cv::Mat InMat, cv::Mat &OutMat)
     // std::cout << OutMat << std::endl;
     cv::imshow("logImage", OutMat);
 }
+inline void t_enhanceImageByMean(cv::Mat InMat, cv::Mat &OutMat)
+{
+    double min = cv::getTrackbarPos("MinBlack", "enhanceImageByMean");
+    double max = cv::getTrackbarPos("MaxWhite", "enhanceImageByMean");
+    awcv::enhanceImageByMean(InMat, OutMat, min, max);
+    cv::imshow("enhanceImageByMean", OutMat);
+}
+inline void t_enhanceImageByOTSU(cv::Mat InMat, cv::Mat &OutMat)
+{
+    int thres = cv::getTrackbarPos("thres", "enhanceImageByOTSU");
+    awcv::enhanceImageByOTSU(InMat, OutMat, thres);
+    cv::imshow("enhanceImageByOTSU", OutMat);
+}
+
 #pragma endregion
 
 #pragma region 调用测试算法
