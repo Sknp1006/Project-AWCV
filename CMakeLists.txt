@@ -41,13 +41,15 @@ include_directories(
     ${Boost_INCLUDE_DIRS}
 )
 
+# target_link_libraries(${PROJECT_NAME} PRIVATE ${OpenCV_LIBS} ${Boost_LIBRARIES})
+
 add_library(awcv SHARED ${AWCV_SRCS})
 target_link_libraries(awcv PRIVATE ${OpenCV_LIBS} ${Boost_LIBRARIES})
 add_library(awcv_static STATIC ${AWCV_SRCS})
 target_link_libraries(awcv_static PRIVATE ${OpenCV_LIBS} ${Boost_LIBRARIES})
 
-# 指定静态库的输出名称
-# set_target_properties(awcv_static PROPERTIES OUTPUT_NAME "awcv")
-# # 使动态库和静态库同时存在
-set_target_properties(awcv PROPERTIES CLEAN_DIRECT_OUTPUT 1)
-set_target_properties(awcv_static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+# # 指定静态库的输出名称
+# # set_target_properties(awcv_static PROPERTIES OUTPUT_NAME "awcv")
+# # # 使动态库和静态库同时存在
+# set_target_properties(awcv PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+# set_target_properties(awcv_static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
