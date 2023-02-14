@@ -138,9 +138,9 @@ std::map<int, awcv::Region> awcv::connection(cv::Mat ThresMat)
     {
         for (int i = 1; i < RegionNum; i++)
         {
-            nc::NdArray<int> LabelsArray = Mat2NdArray<int>(Labels); // labels转NdArray
-            nc::NdArray<int> mask = nc::zeros<int>(LabelsArray.shape());   // 空矩阵
-            mask.putMask(LabelsArray == i, 255);                           // 将对应连通域标记为255
+            nc::NdArray<int> LabelsArray = Mat2NdArray<int>(Labels);     // labels转NdArray
+            nc::NdArray<int> mask = nc::zeros<int>(LabelsArray.shape()); // 空矩阵
+            mask.putMask(LabelsArray == i, 255);                         // 将对应连通域标记为255
             cv::Mat connectedRegion = NdArray2Mat(mask);
             connectedRegion.convertTo(connectedRegion, CV_8U); // 第i个连通域Mat
 
@@ -151,4 +151,29 @@ std::map<int, awcv::Region> awcv::connection(cv::Mat ThresMat)
         return Regions;
     }
     return Regions;
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 功能:获取最大的连通域
+// 参数:
+//			Regions:			连通域字典
+// 返回值:
+//			awcv::Region:	    面积最大的连通域
+//--------------------------------------------------------------------------------------------------------------------------------------
+awcv::Region awcv::getMaxAreaRegion(std::map<int, awcv::Region> Regions)
+{
+    int MaxIndex = 0;
+    double MaxArea = 0;
+    for (std::map<int, awcv::Region>::iterator R = Regions.begin(); R != Regions.end(); R++)
+    {
+        int Index = R->first;
+        awcv::Region region = R->second;
+
+        double area = region.getRegionArea();
+        if (area > MaxArea)
+        {
+            MaxArea = area;
+            MaxIndex = Index;
+        }
+    }
+    return Regions.at(MaxIndex);
 }

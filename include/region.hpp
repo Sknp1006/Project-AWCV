@@ -37,5 +37,7 @@ class Region
 
 //分割连通域
 std::map<int, Region> connection(cv::Mat ThresMat);
+//获取最大的连通域
+Region getMaxAreaRegion(std::map<int, Region> Regions);
 } // namespace awcv
 #endif
