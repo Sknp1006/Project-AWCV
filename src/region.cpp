@@ -1,4 +1,6 @@
 #include "region.hpp"
+#include <opencv2/core/types.hpp>
+#include <opencv2/imgproc.hpp>
 #pragma region Region
 //--------------------------------------------------------------------------------------------------------------------------------------
 // 功能:Region类构造函数
@@ -14,11 +16,15 @@ awcv::Region::Region(cv::Mat InMat, cv::Point2f Centroid)
         CV_Error(cv::Error::StsBadArg, "输入的Region或Centroid不合法。");
     }
 
-    this->_Region = InMat.clone();                                                                                   // ROI区域大小
-    std::vector<cv::Vec4i> hierarchy;                                                                                // 轮廓层级
-    cv::findContours(this->_Region, this->contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point()); // 计算区域轮廓
+    this->width = InMat.cols;
+    this->height = InMat.rows;
 
-    this->_Centroid = Centroid;                 // 初始化：质心
+    // this->_Region = InMat.clone();                                                                                // ROI区域大小
+    std::vector<cv::Vec4i> hierarchy;                                                                                // 轮廓层级
+    // cv::findContours(this->_Region, this->contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point()); // 计算区域轮廓
+    cv::findContours(InMat, this->contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_NONE, cv::Point()); // 计算区域轮廓
+
+    this->_Centroid = Centroid;                 // 初始化：质心（从外接输入）
     this->_BoundingRect = cv::Rect();           // 初始化：外接矩形
     this->_MinBoundingRect = cv::RotatedRect(); // 初始化：最小外接矩形
 
@@ -37,6 +43,8 @@ awcv::Region::~Region()
 //--------------------------------------------------------------------------------------------------------------------------------------
 cv::Mat awcv::Region::getRegion()
 {
+    this->_Region = cv::Mat::zeros(this->height, this->width, CV_8UC1);
+    cv::drawContours(this->_Region, this->contours, -1, cv::Scalar::all(255), -1);
     return this->_Region;
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
