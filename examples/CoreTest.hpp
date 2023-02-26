@@ -1,8 +1,9 @@
 #pragma once
-#include <opencv2/highgui.hpp>
 #ifndef H_AWCV_TEST
 #define H_AWCV_TEST
 
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 #include "core.hpp"
 #include "face.hpp"
 #include "file.hpp"
@@ -76,24 +77,22 @@ inline void dododo(cv::Mat img)
     // cv::imshow("thres", thres);
 #pragma endregion
 
-    //
-    // cv::Mat filter;
-    // 低通
-    // awcv::genLowpassFilter(filter, cv::Size(w, h), cv::Point(w / 2, h / 2), 20, awcv::FILTER_BLPF, 8);
-    // 高通
-    // awcv::genHighpassFilter(filter, cv::Size(w, h), cv::Point(w / 2, h / 2), 6, awcv::FILTER_GHPF);
-    // cv::imshow("filter", filter);
-    // awcv::DFTMAT lbp_dft, lbp_idft, afterCon;
-    // awcv::DFT(gray, lbp_dft);                                  //傅里叶变换
-    // awcv::convolDFT(lbp_dft, filter, afterCon);                //频域滤波
-    // awcv::IDFT(afterCon, lbp_idft);                            //傅里叶逆变换
+    
+    cv::Mat filter;
+    awcv::genLowpassFilter(filter, cv::Size(w, h), cv::Point(w / 2, h / 2), 20, awcv::FILTER_BLPF, 8);
+    awcv::genHighpassFilter(filter, cv::Size(w, h), cv::Point(w / 2, h / 2), 6, awcv::FILTER_GHPF);
+    cv::imshow("filter", filter);
+    awcv::DFTMAT lbp_dft, lbp_idft, afterCon;
+    awcv::DFT(gray, lbp_dft);                                  //傅里叶变换
+    awcv::convolDFT(lbp_dft, filter, afterCon);                //频域滤波
+    awcv::IDFT(afterCon, lbp_idft);                            //傅里叶逆变换
 
     ////cv::Mat result;
     ////cv::adaptiveThreshold(lbp_idft.img, result, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 5, 0);
     ////awcv::LBP(lbp_idft.img, lbp);                            //LBP提取纹理
 
     // cv::imshow("dft", lbp_dft.img);
-    // cv::imshow("idft", lbp_idft.img * 10);
+    cv::imshow("idft", lbp_idft.getMat() * 10);
     ////cv::imshow("res", result);
     ////cv::imshow("result", lbp);
 
@@ -172,6 +171,20 @@ inline void initEnhanceImageByOTSU()
     cv::namedWindow("enhanceImageByOTSU", cv::WINDOW_NORMAL);
     int thres = 0;
     cv::createTrackbar("thres", "enhanceImageByOTSU", &thres, 255, __TrackbarCallback);
+}
+inline void initBilateralFilter()
+{
+    cv::namedWindow("bilateralFilter", cv::WINDOW_NORMAL);
+    cv::createTrackbar("d", "bilateralFilter", 0, 50, __TrackbarCallback);
+    cv::createTrackbar("sigmaColor", "bilateralFilter", 0, 255, __TrackbarCallback);
+    cv::createTrackbar("sigmaSpace", "bilateralFilter", 0, 255, __TrackbarCallback);
+}
+inline void initRegionGrowing()
+{
+    int loDiff = 20, upDiff = 20;
+    cv::namedWindow("regionGrowing", cv::WINDOW_NORMAL);
+    cv::createTrackbar("lo_diff", "regionGrowing", &loDiff, 255, 0);
+    cv::createTrackbar("up_diff", "regionGrowing", &upDiff, 255, 0);
 }
 #pragma endregion
 
@@ -277,7 +290,21 @@ inline void t_enhanceImageByOTSU(cv::Mat InMat, cv::Mat &OutMat)
     awcv::enhanceImageByOTSU(InMat, OutMat, thres);
     cv::imshow("enhanceImageByOTSU", OutMat);
 }
-
+inline void t_bilateralFilter(cv::Mat InMat, cv::Mat &OutMat)
+{
+    int d = cv::getTrackbarPos("d", "bilateralFilter");
+    int sigmaColor = cv::getTrackbarPos("sigmaColor", "bilateralFilter");
+    int sigmaSpace = cv::getTrackbarPos("sigmaSpace", "bilateralFilter");
+    cv::bilateralFilter(InMat, OutMat, d, sigmaColor, sigmaSpace, cv::BORDER_DEFAULT);
+    cv::imshow("bilateralFilter", OutMat);
+}
+//inline void t_regionGrowing(cv::Mat InMat, cv::Point Seed, cv::Mat &OutMat)
+//{
+//    int loDiff = cv::getTrackbarPos("loDiff", "regionGrowing");
+//    int upDiff = cv::getTrackbarPos("upDiff", "regionGrowing");
+//    awcv::regionGrowing(InMat, OutMat, Seed, loDiff, upDiff);
+//    cv::imshow("regionGrowing", OutMat);
+//}
 #pragma endregion
 
 #pragma region 调用测试算法
@@ -412,7 +439,7 @@ inline void testLogImage(std::string Filepath, bool Recursion = false)
             cv::imshow("原图", temp);
             t_LBP(temp, lbp);
             awcv::DFT(lbp, lbp_dft);
-            cv::imshow("频谱", lbp_dft.img);
+            cv::imshow("频谱", lbp_dft.getMat());
             // t_logImage(temp, log);
             if (cv::waitKey(0) == 32)
                 break; // 空格到下一张
