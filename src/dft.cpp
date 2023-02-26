@@ -40,12 +40,15 @@ void awcv::DFT(cv::Mat InMat, DFTMAT &OutDft)
 //--------------------------------------------------------------------------------------------------------------------------------------
 void awcv::IDFT(DFTMAT InDft, DFTMAT &OutMat)
 {
-    cv::Mat mag[2];
-    cv::idft(InDft.complexM, OutMat.complexM);
-    cv::split(OutMat.complexM, mag);
+    cv::Mat mag[2], Out_complexM, Out_Mat;
+    cv::idft(InDft.getComplexMat(), Out_complexM);
+    OutMat.setComplexMat(Out_complexM);
+    cv::split(OutMat.getComplexMat(), mag);
     cv::magnitude(mag[0], mag[1], mag[0]);
-    cv::normalize(mag[0], OutMat.img, 1, 0, cv::NORM_MINMAX);
-    OutMat.img.convertTo(OutMat.img, CV_8U, 255, 0);
+    
+    cv::normalize(mag[0], Out_Mat, 1, 0, cv::NORM_MINMAX); 
+    Out_Mat.convertTo(Out_Mat, CV_8U, 255, 0);
+    OutMat.setMat(Out_Mat);
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 // 功能:对频域使用滤波器
@@ -67,11 +70,12 @@ void awcv::convolDFT(DFTMAT InDft, cv::Mat Filter, DFTMAT &OutDft)
     // cv::imshow("inmat", dft);
     // cv::Mat idft; awcv::IDFT(dft, idft);                                        //【第五步】傅里叶逆变换
     // OutMat = idft(cv::Rect(0, 0, InMat_Width, InMat_Height)).clone();           //【第六步】取左上象限的区域
-    cv::Mat planes[2];
-    cv::split(InDft.complexM, planes);
+    cv::Mat planes[2], Out_complexM;
+    cv::split(InDft.getComplexMat(), planes);
     planes[0] = planes[0].mul(Filter);
     planes[1] = planes[1].mul(Filter);
-    cv::merge(planes, 2, OutDft.complexM);
+    cv::merge(planes, 2, Out_complexM);
+    OutDft.setComplexMat(Out_complexM);
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 // 功能:生成带通滤波器

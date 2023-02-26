@@ -25,19 +25,55 @@ enum FilterTypes // 滤波器分类
     FILTER_BBRF, // 巴特沃斯带通滤波器
     FILTER_GBRF, // 高斯带通滤波器
 };
-struct DFTMAT // 用于计算的DFTMAT结构体
+// struct DFTMAT // 用于计算的DFTMAT结构体
+// {
+//     DFTMAT()
+//     {
+//     }
+//     DFTMAT(cv::Mat Img, cv::Mat ComplexM)
+//     {
+//         this->img = Img.clone();
+//         this->complexM = ComplexM.clone();
+//     }
+//     cv::Mat img;      // 可显示的频谱图
+//     cv::Mat complexM; // 用于计算的复数矩阵
+// };
+
+class DFTMAT
 {
-    DFTMAT()
+public:
+    DFTMAT() {}
+    DFTMAT(cv::Mat InMat, cv::Mat ComplexMat)
     {
+        this->mat = InMat.clone();
+        this->complexMat = ComplexMat.clone();
     }
-    DFTMAT(cv::Mat Img, cv::Mat ComplexM)
+    void setMat(const cv::Mat &InMat) 
+    { 
+        this->mat = InMat.clone(); }
+    cv::Mat getMat() const { return this->mat; }
+
+    // 检查复数矩阵是否有两个通道，以便正确设置
+    static bool isComplexMatValid(const cv::Mat& InMat)
     {
-        this->img = Img.clone();
-        this->complexM = ComplexM.clone();
+        return InMat.channels() == 2 && (InMat.type() == CV_8UC2 || InMat.type() == CV_32FC2);
     }
-    cv::Mat img;      // 可显示的频谱图
-    cv::Mat complexM; // 用于计算的复数矩阵
+
+    // 可能会抛出无效参数异常
+    void setComplexMat(const cv::Mat& InMat) 
+    {
+        if (!isComplexMatValid(InMat))
+            throw std::invalid_argument("Complex matrix must have two channels and either 8-bit unsigned or 32-bit floating point type");
+
+        this->complexMat = InMat.clone();
+    }
+
+    cv::Mat getComplexMat() const { return this->complexMat; }
+private:
+    cv::Mat mat;        // 可显示的频谱图
+    cv::Mat complexMat; // 用于计算的复数矩阵
 };
+
 // 离散傅里叶变换
 void DFT(cv::Mat InMat, DFTMAT &Out);
 // 离散傅里叶逆变换
