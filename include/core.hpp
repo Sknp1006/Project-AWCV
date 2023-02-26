@@ -1,5 +1,6 @@
 //--------------------------------------------------------------------------------------------------------------------------------------
 #pragma once // 防止重复编译
+#include <vector>
 #ifndef H_AWCV_CORE
 #define H_AWCV_CORE
 
@@ -20,6 +21,19 @@ enum DecomTypes
     DECOM_HSV, // 按HSV拆分通道
 };
 
+enum RegionGrowingFlags
+{
+    FILLMODE_SIMPLE = 0,
+    FILLMODE_FixedRange = 1,
+    FILLMODE_Gradient = 2,
+};
+// 连通域模式
+enum ConnectivityMode
+{
+    Connectivity_4 = 4,
+    Connectivity_8 = 8,
+};
+
 void bgr2gray(cv::Mat InMat, cv::Mat &OutMat);                                                     // 转灰度图
 void resize(cv::Mat &InOutMat, double Ratio);                                                      // 按比例改变图像大小
 void resize(cv::Mat &InOutMat, cv::Size Size);                                                     // 等比例改变图像大小
@@ -30,13 +44,35 @@ void gammaImage(cv::Mat InMat, cv::Mat &OutMat, float Gamma);                   
 void autoGammaImage(cv::Mat InMat, cv::Mat &OutMat, float C);                                      // 自动伽马矫正
 void linearGrayLevelTrans(cv::Mat InMat, cv::Mat &OutMat, int Th1, int Th2, int Goal1, int Goal2); // 灰度线性拉升
 void logImage(cv::Mat InMat, cv::Mat &OutMat, float Const);                                        // 灰度对数变换
+void equalizeColor(cv::Mat InMat, cv::Mat &OutMat);                                                // 色彩均衡
 
 /*	void watershedsThreshold(	cv::Mat InMat,
                                 cv::Mat& OutMat,
                                 int Threshold);
  */
 // 分水岭分割法
-
+// 区域生长法
+void regionGrowingWithSeed( cv::Mat InMat, 
+                            cv::Point Seed,  
+                            cv::Mat &Mask, 
+                            int LoDiff = 30,
+                            int UpDiff = 40,
+                            int FfillMode = 1, 
+                            int Connectivity = 4);      //使用一个种子点的区域生长法
+void regionGrowingWithROI(	cv::Mat InMat, 
+                            cv::Rect ROI, 
+                            cv::Mat& Mask, 
+                            int LoDiff = 30,
+                            int UpDiff = 40,
+                            int FfillMode = 1, 
+                            int Connectivity = 4);		//使用roi区域的区域生长法
+void regionGrowing(         cv::Mat InMat, 
+                            std::vector<cv::Point> SeedPoints, 
+                            cv::Mat& Mask, 
+                            int LoDiff = 30,
+                            int UpDiff = 40,
+                            int FfillMode = 1, 
+                            int Connectivity = 4);
 // void pyrMeanShiftFiltering();				//均值漂移
 
 // 拆分图像通道
@@ -58,7 +94,8 @@ void enhanceImageByMean(cv::Mat InMat, cv::Mat &OutMat, double &M1, double &M2);
 // 图像增强（基于OTSU）
 void enhanceImageByOTSU(cv::Mat InMat, cv::Mat &OutMat, int &Thres);
 
-
+//生成直方图
+cv::Mat getHistImage(cv::Mat InMat);
 //--------------------------------------------------------------------------------------------------------------------------------------
 // 下面是一些通用类的声明
 //--------------------------------------------------------------------------------------------------------------------------------------

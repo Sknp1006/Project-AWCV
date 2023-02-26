@@ -22,8 +22,7 @@ void awcv::bgr2gray(cv::Mat InMat, cv::Mat &OutMat)
 //--------------------------------------------------------------------------------------------------------------------------------------
 void awcv::resize(cv::Mat &InOutMat, double Ratio)
 {
-    if (Ratio <= 0)
-        return;
+    if (Ratio <= 0) return;
     cv::resize(InOutMat, InOutMat, cv::Size(int(InOutMat.cols * Ratio), int(InOutMat.rows * Ratio)));
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -233,6 +232,24 @@ void awcv::logImage(cv::Mat InMat, cv::Mat &OutMat, float Const)
     // cv::convertScaleAbs(OutMat, OutMat);
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
+// 功能:色彩均衡
+// 参数:
+//          InMat:          输入图像
+//          OutMat:         输出图像
+//--------------------------------------------------------------------------------------------------------------------------------------
+void awcv::equalizeColor(cv::Mat InMat, cv::Mat &OutMat)
+{
+    cv::Mat ycrcb;
+    cv::cvtColor(InMat, ycrcb, cv::COLOR_BGR2YCrCb);
+    std::vector<cv::Mat> channels;
+    cv::split(ycrcb, channels);
+
+    // 只均衡Y通道
+    cv::equalizeHist(channels[0], channels[0]);
+    cv::merge(channels, ycrcb);
+    cv::cvtColor(ycrcb, OutMat, cv::COLOR_YCrCb2BGR);
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
 // 功能:使用分水岭法分割图像
 // 参数:
 //          InMat:          输入图像(3-Channels)
@@ -274,6 +291,92 @@ void awcv::logImage(cv::Mat InMat, cv::Mat &OutMat, float Const)
 //    cv::watershed(InMat, markers);              //输入彩色图像
 //    cv::convertScaleAbs(markers, OutMat);
 //}
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 功能: 使用roi的区域生长法
+// 参数:
+//			InMat:			输入图像
+//			Seed:			种子点
+//			Mask:			输出区域掩膜
+//			LoDiff:			低阈值，用于判断两个像素是否相似。如果两个像素的灰度值之差小于loDiff，那么它们被认为是相似的，可以属于同一区域。
+//			UpDiff:			高阈值，用于控制区域的生长速度。如果一个像素与当前区域中的任意一个像素的灰度值之差超过了upDiff，那么这个像素不会被加入到当前区域中。
+//			FfillMode:		填充模式(Simple:0, FixedRange:1, Gradient(floating range):2)
+//			Connectivity:	连通域模式（4 or 8）
+//--------------------------------------------------------------------------------------------------------------------------------------
+void awcv::regionGrowingWithSeed(cv::Mat InMat, cv::Point Seed,  cv::Mat &Mask, int LoDiff, int UpDiff, int FfillMode, int Connectivity)
+{
+    if (Mask.empty()) { Mask = cv::Mat::zeros(InMat.rows + 2, InMat.cols + 2, CV_8UC1); }
+	int lo = FfillMode == 0 ? 0 : LoDiff;
+	int up = FfillMode == 0 ? 0 : UpDiff;
+	int flags = Connectivity + (255 << 8) + (FfillMode == 1 ? cv::FLOODFILL_FIXED_RANGE : 0);
+
+	cv::Rect ccomp;
+	// 这里实现区域生长法
+	int area = cv::floodFill(InMat, Mask, Seed, cv::Scalar(), &ccomp, cv::Scalar(lo, lo, lo), cv::Scalar(up, up, up), flags);
+	Mask = Mask(cv::Rect(0, 0, Mask.cols - 2, Mask.rows - 2));
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 功能: 使用roi的区域生长法
+// 参数:
+//			InMat:			输入图像
+//			ROI:			感兴趣区域
+//			Mask:			输出区域掩膜
+//			LoDiff:			低阈值，用于判断两个像素是否相似。如果两个像素的灰度值之差小于loDiff，那么它们被认为是相似的，可以属于同一区域。
+//			UpDiff:			高阈值，用于控制区域的生长速度。如果一个像素与当前区域中的任意一个像素的灰度值之差超过了upDiff，那么这个像素不会被加入到当前区域中。
+//			FfillMode:		填充模式(Simple:0, FixedRange:1, Gradient(floating range):2)
+//			Connectivity:	连通域模式（4 or 8）
+//--------------------------------------------------------------------------------------------------------------------------------------
+void awcv::regionGrowingWithROI(cv::Mat InMat, cv::Rect ROI, cv::Mat& Mask, int LoDiff,int UpDiff,int FfillMode, int Connectivity)
+{
+	if (Mask.empty()) { Mask = cv::Mat::zeros(InMat.rows + 2, InMat.cols + 2, CV_8UC1); }
+	// 选择9个点
+	int diffCol = ROI.width / 3;
+	int diffRow = ROI.height / 3;
+	std::vector<cv::Point> SeedPoints;
+	for (int row = 0; row < 3; row++)
+	{
+		for (int col = 0; col < 3; col++)
+		{
+			SeedPoints.push_back(cv::Point(ROI.x + (col * diffCol), ROI.y + (row * diffRow)));		// 种子点
+			// std::cout << "种子点:" << cv::Point(ROI.x + (col * diffCol), ROI.y + (row * diffRow)) << std::endl;
+		}
+	}
+	int lo = FfillMode == 0 ? 0 : LoDiff;
+	int up = FfillMode == 0 ? 0 : UpDiff;
+	int flags = Connectivity + (255 << 8) + (FfillMode == 1 ? cv::FLOODFILL_FIXED_RANGE : 0);
+
+	cv::Rect ccomp;
+	for (std::vector<cv::Point>::iterator seed = SeedPoints.begin(); seed != SeedPoints.end(); seed++)
+	{
+		// 这里实现区域生长法
+		int area = cv::floodFill(InMat, Mask, *seed, cv::Scalar(), &ccomp, cv::Scalar(lo, lo, lo), cv::Scalar(up, up, up), flags);
+	}
+	Mask = Mask(cv::Rect(0, 0, Mask.cols - 2, Mask.rows - 2));
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 功能: 使用roi的区域生长法
+// 参数:
+//			InMat:			输入图像
+//			SeedPoints:	    种子点集
+//			Mask:			输出区域掩膜
+//			LoDiff:			低阈值，用于判断两个像素是否相似。如果两个像素的灰度值之差小于loDiff，那么它们被认为是相似的，可以属于同一区域。
+//			UpDiff:			高阈值，用于控制区域的生长速度。如果一个像素与当前区域中的任意一个像素的灰度值之差超过了upDiff，那么这个像素不会被加入到当前区域中。
+//			FfillMode:		填充模式(Simple:0, FixedRange:1, Gradient(floating range):2)
+//			Connectivity:	连通域模式（4 or 8）
+//--------------------------------------------------------------------------------------------------------------------------------------
+void awcv::regionGrowing(cv::Mat InMat, std::vector<cv::Point> SeedPoints, cv::Mat& Mask, int LoDiff, int UpDiff, int FfillMode, int Connectivity)
+{
+	if (Mask.empty()) { Mask = cv::Mat::zeros(InMat.rows + 2, InMat.cols + 2, CV_8UC1); }
+	int lo = FfillMode == 0 ? 0 : LoDiff;
+	int up = FfillMode == 0 ? 0 : UpDiff;
+	int flags = Connectivity + (255 << 8) + (FfillMode == 1 ? cv::FLOODFILL_FIXED_RANGE : 0);
+
+	cv::Rect ccomp;
+	for (std::vector<cv::Point>::iterator seed = SeedPoints.begin(); seed != SeedPoints.end(); seed++)
+	{
+		int area = cv::floodFill(InMat, Mask, *seed, cv::Scalar(), &ccomp, cv::Scalar(lo, lo, lo), cv::Scalar(up, up, up), flags);
+	}
+	Mask = Mask(cv::Rect(0, 0, Mask.cols - 2, Mask.rows - 2));
+}
 //--------------------------------------------------------------------------------------------------------------------------------------
 // 功能:拆分图片的通道
 // 参数:
@@ -373,7 +476,7 @@ void awcv::estimateBackgroundIllumination(cv::Mat InMat, cv::Mat &OutMat)
     DFT(InMat, dft);                  // 傅里叶变换
     convolDFT(dft, filter, afterCon); // 频域卷积
     IDFT(afterCon, idft);             // 傅里叶逆变换
-    OutMat = idft.img.clone();
+    OutMat = idft.getMat().clone();
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 // 功能:图片颜色翻转
@@ -505,6 +608,39 @@ void awcv::enhanceImageByOTSU(cv::Mat InMat, cv::Mat &OutMat, int &Thres)
     double Max = meanW1[0] - 2*devB1[0];
     
     awcv::scaleImage(InMat, OutMat, Min, Max);
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 功能:生成直方图
+// 参数:
+//          InMat:          输入图像
+// 返回值:
+//          cv::Mat         直方图
+//--------------------------------------------------------------------------------------------------------------------------------------
+cv::Mat awcv::getHistImage(cv::Mat InMat)
+{
+	int histogram[256] = { 0 };
+	int tmp = 0;
+
+	for (int i = 0; i < InMat.rows; i++) {
+		for (int j = 0; j < InMat.cols; j++) {
+			tmp = InMat.at<uchar>(i, j);
+			histogram[tmp]++;
+		}
+	}
+	cv::Mat hist(1, 256, CV_32F, histogram);
+	double minVal = 0;
+	double maxVal = 0;
+	cv::minMaxLoc(hist, &minVal, &maxVal, 0, 0);
+
+	cv::Mat histImage(255, 255, CV_8UC3, cv::Scalar::all(255));
+	int hpt = static_cast<uchar>(0.9 * hist.cols);
+	for (int i = 0; i < 255; i++)
+	{
+		float binVal = hist.at<float>(i);
+		int intensity = static_cast<int>(binVal * hpt / maxVal);
+		cv::line(histImage, cv::Point(i, hist.cols), cv::Point(i, hist.cols - intensity), cv::Scalar(255, 0, 0));
+	}
+	return histImage;
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 // 下面是一些通用类的实现
