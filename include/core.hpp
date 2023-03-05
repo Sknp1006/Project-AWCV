@@ -76,9 +76,9 @@ void regionGrowing(         cv::Mat InMat,
 // void pyrMeanShiftFiltering();				//均值漂移
 
 // 拆分图像通道
-void decompose3(cv::Mat InMat, std::vector<cv::Mat> &OutArray, DecomTypes type);
+void decompose3(const cv::Mat &InMat, std::vector<cv::Mat> &OutArray, DecomTypes type);
 // 高斯差分算法（DOG）
-void diffOfGaussian(cv::Mat InMat, cv::Mat &OutMat, cv::Size KSize = cv::Size(3, 3), double Sigma = 0.3, double SigFactor = 1.5);
+void diffOfGaussian(const cv::Mat &InMat, cv::Mat &OutMat, cv::Size KSize = cv::Size(3, 3), double Sigma = 0.3, double SigFactor = 1.5);
 // 提取LBP纹理
 void LBP(cv::Mat InMat, cv::Mat &OutMat);
 // 高斯背景估计法
@@ -90,12 +90,12 @@ void gaborFilter(cv::Mat InMat, cv::Mat &OutMat, int KernelSize, double Sigma, d
 // 加权最小二乘滤波（未实现）
 void wlsFilter(cv::Mat InMat, cv::Mat &OutMat, float Sigma, float Lambda, int SolverIteration);
 // 图像增强（基于平均值）
-void enhanceImageByMean(cv::Mat InMat, cv::Mat &OutMat, double &M1, double &M2);
+void enhanceImageByMean(const cv::Mat &InMat, cv::Mat &OutMat, double M1, double M2);
 // 图像增强（基于OTSU）
-void enhanceImageByOTSU(cv::Mat InMat, cv::Mat &OutMat, int &Thres);
+void enhanceImageByOTSU(const cv::Mat &InMat, cv::Mat &OutMat, int &Thres);
 
 //生成直方图
-cv::Mat getHistImage(cv::Mat InMat);
+cv::Mat getHistImage(const cv::Mat &InMat);
 //--------------------------------------------------------------------------------------------------------------------------------------
 // 下面是一些通用类的声明
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -137,7 +137,7 @@ class GLCM
     void calcGLCM(cv::Mat InMat);        // 【第二步】计算灰度共生矩阵与特征描述子
     cv::Mat getGLCMFeatures();           // 【第三步】获得统计结果
   private:
-    std::vector<GLCMDATA> glcmdata; // 分别是0, 45, 90, 135角度的特征描述子
+    std::vector<GLCMDATA> glcmdata;      // 分别是0, 45, 90, 135角度的特征描述子
     int MaxGrayLevel = 64;
     GLCMDATA CalcGLCMDATA(cv::Mat GLCMMAT);
 

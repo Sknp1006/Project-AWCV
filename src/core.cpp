@@ -384,7 +384,7 @@ void awcv::regionGrowing(cv::Mat InMat, std::vector<cv::Point> SeedPoints, cv::M
 //          OutArray:       输出颜色通道数组
 //          type:           要拆分的通道类型（RGB、HSV）
 //--------------------------------------------------------------------------------------------------------------------------------------
-void awcv::decompose3(cv::Mat InMat, std::vector<cv::Mat> &OutArray, DecomTypes Type)
+void awcv::decompose3(const cv::Mat &InMat, std::vector<cv::Mat> &OutArray, DecomTypes Type)
 {
     if (InMat.channels() != 3)
         return; // 不是三通道
@@ -412,7 +412,7 @@ void awcv::decompose3(cv::Mat InMat, std::vector<cv::Mat> &OutArray, DecomTypes 
 //          Sigma:          输入Sigma参数
 //          SigFactor:      输入SigFactor参数
 //--------------------------------------------------------------------------------------------------------------------------------------
-void awcv::diffOfGaussian(cv::Mat InMat, cv::Mat &OutMat, cv::Size KSize, double Sigma, double SigFactor)
+void awcv::diffOfGaussian(const cv::Mat &InMat, cv::Mat &OutMat, cv::Size KSize, double Sigma, double SigFactor)
 {
     // assert(SigFactor > 0.0f && Sigma > 0.0f); //数据约束
     if (!(SigFactor > 0.0f) || !(Sigma > 0.0f))
@@ -529,14 +529,13 @@ void awcv::wlsFilter(cv::Mat InMat, cv::Mat &OutMat, float Sigma, float Lambda, 
 //          Min:            灰度区间最小值
 //          Max:            灰度区间最大值
 //--------------------------------------------------------------------------------------------------------------------------------------
-void awcv::enhanceImageByMean(cv::Mat InMat, cv::Mat &OutMat, double &Min, double &Max)
+void awcv::enhanceImageByMean(const cv::Mat &InMat, cv::Mat &OutMat, double Min, double Max)
 {
     // 算法流程：
     if (InMat.channels() == 3)
         cv::cvtColor(InMat, InMat, cv::COLOR_BGR2GRAY);
     if (Min > 0 && Max > 0 && Max > Min)
     {
-
 
     }
     else if (Min == 0 && Max == 0)
@@ -584,7 +583,7 @@ void awcv::enhanceImageByMean(cv::Mat InMat, cv::Mat &OutMat, double &Min, doubl
 //          OutMat:         输出图像
 //          Thres:          OTSU的阈值
 //--------------------------------------------------------------------------------------------------------------------------------------
-void awcv::enhanceImageByOTSU(cv::Mat InMat, cv::Mat &OutMat, int &Thres)
+void awcv::enhanceImageByOTSU(const cv::Mat &InMat, cv::Mat &OutMat, int &Thres)
 {
     // 使用OTSU的灰度值替换平均灰度值
     if (InMat.channels() == 3)
@@ -616,7 +615,7 @@ void awcv::enhanceImageByOTSU(cv::Mat InMat, cv::Mat &OutMat, int &Thres)
 // 返回值:
 //          cv::Mat         直方图
 //--------------------------------------------------------------------------------------------------------------------------------------
-cv::Mat awcv::getHistImage(cv::Mat InMat)
+cv::Mat awcv::getHistImage(const cv::Mat &InMat)
 {
 	int histogram[256] = { 0 };
 	int tmp = 0;
