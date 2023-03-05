@@ -1,5 +1,6 @@
 #pragma once
 
+#include <opencv2/core/types.hpp>
 #ifndef H_AWCV_REGION
 #define H_AWCV_REGION
 
@@ -12,9 +13,12 @@ namespace awcv
 class Region
 {
   public:
-    Region(cv::Mat InMat, cv::Point2f Centroid);
+    Region() {};
+    explicit Region(cv::Mat InMat, cv::Point2f Centroid);
+    explicit Region(cv::Mat InMat) : Region(InMat, cv::Point2f(0.0f, 0.0f)) {}
     ~Region();
 
+    cv::Size getMatSize() const;          // 获取原始图像尺寸
     cv::Mat getRegion();                  // 获取区域
     double getRegionArea();               // 获取区域面积
     cv::Point2f getCentroid();            // 获取区域质心
@@ -40,5 +44,8 @@ class Region
 std::map<int, Region> connection(cv::Mat ThresMat);
 //获取最大的连通域
 Region getMaxAreaRegion(std::map<int, Region> Regions);
+std::map<int, Region> filterRegionByArea(std::map<int, Region> Regions, float MinArea, float MaxArea=99999.0f);
+// 计算区域质心
+std::vector<cv::Point2f> calcCentroid(std::vector<std::vector<cv::Point>> Contours);
 } // namespace awcv
 #endif

@@ -5,26 +5,32 @@
 //--------------------------------------------------------------------------------------------------------------------------------------
 // 功能:Region类构造函数
 // 参数:
-//            InMat:            输入区域(CV_8UC1)
+//            InMat:           输入区域(CV_8UC1)
 //            Centroid:        输入区域质心
 //--------------------------------------------------------------------------------------------------------------------------------------
-awcv::Region::Region(cv::Mat InMat, cv::Point2f Centroid)
+awcv::Region::Region(cv::Mat InMat, cv::Point2f Centroid) 
 {
     if (InMat.type() != CV_8UC1)
     {
         // TODO:只能包含0和255值
         CV_Error(cv::Error::StsBadArg, "输入的Region或Centroid不合法。");
     }
-
     this->width = InMat.cols;
     this->height = InMat.rows;
-
     // this->_Region = InMat.clone();                                                                                // ROI区域大小
     std::vector<cv::Vec4i> hierarchy;                                                                                // 轮廓层级
     // cv::findContours(this->_Region, this->contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point()); // 计算区域轮廓
     cv::findContours(InMat, this->contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_NONE, cv::Point()); // 计算区域轮廓
 
+if ((Centroid.x == 0.0f) && (Centroid.y == 0.0f))
+{
+    auto Centroids = awcv::calcCentroid(this->contours);    // 计算质心
+    this->_Centroid = Centroids[0];
+}
+else
+{
     this->_Centroid = Centroid;                 // 初始化：质心（从外接输入）
+}
     this->_BoundingRect = cv::Rect();           // 初始化：外接矩形
     this->_MinBoundingRect = cv::RotatedRect(); // 初始化：最小外接矩形
 
@@ -34,17 +40,23 @@ awcv::Region::Region(cv::Mat InMat, cv::Point2f Centroid)
 //--------------------------------------------------------------------------------------------------------------------------------------
 // 功能:Region类析构函数
 //--------------------------------------------------------------------------------------------------------------------------------------
-awcv::Region::~Region()
-{
-}
+awcv::Region::~Region() {}
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 功能:获取区域
+// 返回值:    区域图像
+//--------------------------------------------------------------------------------------------------------------------------------------
+cv::Size awcv::Region::getMatSize() const { return cv::Size(this->width, this->height); }
 //--------------------------------------------------------------------------------------------------------------------------------------
 // 功能:获取区域
 // 返回值:    区域图像
 //--------------------------------------------------------------------------------------------------------------------------------------
 cv::Mat awcv::Region::getRegion()
 {
-    this->_Region = cv::Mat::zeros(this->height, this->width, CV_8UC1);
-    cv::drawContours(this->_Region, this->contours, -1, cv::Scalar::all(255), -1);
+    if (this->_Region.empty())
+    {
+        this->_Region = cv::Mat::zeros(this->height, this->width, CV_8UC1);
+        cv::drawContours(this->_Region, this->contours, -1, cv::Scalar::all(255), -1);
+    }
     return this->_Region;
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -184,4 +196,53 @@ awcv::Region awcv::getMaxAreaRegion(std::map<int, awcv::Region> Regions)
         }
     }
     return Regions.at(MaxIndex);
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 功能:按照面积筛选区域
+// 参数:
+//			Regions:			连通域字典
+//          Area:               满足条件的最小面积
+//          MaxArea:            满足条件的最大面积
+// 返回值:
+//			awcv::Region:	    满足条件的连通域
+//--------------------------------------------------------------------------------------------------------------------------------------
+std::map<int, awcv::Region> awcv::filterRegionByArea(std::map<int, awcv::Region> Regions, float MinArea, float MaxArea)
+{
+    std::map<int, awcv::Region> _Regions;
+    for (std::map<int, awcv::Region>::iterator R = Regions.begin(); R != Regions.end(); R++)
+    {
+        int Index = R->first;
+        awcv::Region region = R->second;
+
+        double area = region.getRegionArea();
+        if ((area >= MinArea) && (area <= MaxArea))
+        {
+            _Regions.insert(std::pair<int, awcv::Region>(Index, region));
+        }
+    }
+    Regions.clear();
+    return _Regions;
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 功能:计算区域质心
+// 参数:
+//          Contours:       区域轮廓
+// 返回值:
+//          std::vector<cv::Point2f>:   质心集合
+//--------------------------------------------------------------------------------------------------------------------------------------
+std::vector<cv::Point2f> awcv::calcCentroid(std::vector<std::vector<cv::Point>> Contours)
+{
+    // 5、计算每个轮廓所有矩
+    std::vector<cv::Moments> mu(Contours.size());    // 创建一个vector,元素个数为contours.size()
+    for( int i = 0; i < Contours.size(); i++ )
+    {
+        mu[i] = moments(Contours[i], false);   // 获得轮廓的所有最高达三阶所有矩
+    }
+    // 6、计算轮廓的质心
+    std::vector<cv::Point2f> mc(Contours.size());
+    for( int i = 0; i < Contours.size(); i++ )
+    {
+        mc[i] = cv::Point2f(static_cast<float>(mu[i].m10/mu[i].m00), static_cast<float>(mu[i].m01/mu[i].m00));   // 质心的 X,Y 坐标：(m10/m00, m01/m00)
+    }
+    return mc;
 }
