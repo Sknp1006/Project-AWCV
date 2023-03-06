@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(Project-AWCV VERSION 0.1 LANGUAGES CXX)
+project(Project-AWCV VERSION 1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if(WIN32)
@@ -13,7 +13,7 @@ endif()
 # set(CMAKE_TOOLCHAIN_FILE "/Users/zhe/Github/vcpkg/buildtrees/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
 set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/publish)
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/archive)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/runtime)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/library)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/runtime)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/path)
@@ -52,12 +52,6 @@ include_directories(
 # target_link_libraries(${PROJECT_NAME} PRIVATE ${OpenCV_LIBS} ${Boost_LIBRARIES})
 
 add_library(awcv SHARED ${AWCV_SRCS})
-target_link_libraries(awcv PRIVATE ${OpenCV_LIBS} ${Boost_LIBRARIES})
+target_link_libraries(awcv PRIVATE ${OpenCV_LIBS} Boost::filesystem)
 add_library(awcv_static STATIC ${AWCV_SRCS})
-target_link_libraries(awcv_static PRIVATE ${OpenCV_LIBS} ${Boost_LIBRARIES})
-
-# # 指定静态库的输出名称
-# # set_target_properties(awcv_static PROPERTIES OUTPUT_NAME "awcv")
-# # # 使动态库和静态库同时存在
-# set_target_properties(awcv PROPERTIES CLEAN_DIRECT_OUTPUT 1)
-# set_target_properties(awcv_static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+target_link_libraries(awcv_static PRIVATE ${OpenCV_LIBS} Boost::filesystem)
