@@ -237,7 +237,7 @@ void awcv::logImage(cv::Mat InMat, cv::Mat &OutMat, float Const)
 //          InMat:          输入图像
 //          OutMat:         输出图像
 //--------------------------------------------------------------------------------------------------------------------------------------
-void awcv::equalizeColor(cv::Mat InMat, cv::Mat &OutMat)
+void awcv::equalizeColor(const cv::Mat &InMat, cv::Mat &OutMat)
 {
     cv::Mat ycrcb;
     cv::cvtColor(InMat, ycrcb, cv::COLOR_BGR2YCrCb);

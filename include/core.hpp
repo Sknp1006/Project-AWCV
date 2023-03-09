@@ -44,7 +44,7 @@ void gammaImage(cv::Mat InMat, cv::Mat &OutMat, float Gamma);                   
 void autoGammaImage(cv::Mat InMat, cv::Mat &OutMat, float C);                                      // 自动伽马矫正
 void linearGrayLevelTrans(cv::Mat InMat, cv::Mat &OutMat, int Th1, int Th2, int Goal1, int Goal2); // 灰度线性拉升
 void logImage(cv::Mat InMat, cv::Mat &OutMat, float Const);                                        // 灰度对数变换
-void equalizeColor(cv::Mat InMat, cv::Mat &OutMat);                                                // 色彩均衡
+void equalizeColor(const cv::Mat &InMat, cv::Mat &OutMat);                                         // 色彩均衡
 
 /*	void watershedsThreshold(	cv::Mat InMat,
                                 cv::Mat& OutMat,
