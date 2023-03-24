@@ -22,7 +22,8 @@ void awcv::bgr2gray(cv::Mat InMat, cv::Mat &OutMat)
 //--------------------------------------------------------------------------------------------------------------------------------------
 void awcv::resize(cv::Mat &InOutMat, double Ratio)
 {
-    if (Ratio <= 0) return;
+    if (Ratio <= 0)
+        return;
     cv::resize(InOutMat, InOutMat, cv::Size(int(InOutMat.cols * Ratio), int(InOutMat.rows * Ratio)));
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -54,14 +55,16 @@ void awcv::resize(cv::Mat &InOutMat, cv::Size Size)
 //          MinGray:        输入区间最小值
 //          MaxGray:        输入区间最大值
 //--------------------------------------------------------------------------------------------------------------------------------------
-void awcv::threshold(cv::Mat InMat, cv::Mat &OutMat, double MinGray, double MaxGray)
+void awcv::threshold(const cv::Mat &InMat, cv::Mat &OutMat, double MinGray, double MaxGray)
 {
-    cv::Mat temp = InMat.clone();
-    if (temp.channels() == 3)
-        cv::cvtColor(temp, temp, cv::COLOR_BGR2GRAY);
+    cv::Mat gray;
+    if (InMat.channels() == 1)
+        gray = InMat.clone();
+    else
+        cv::cvtColor(InMat, gray, cv::COLOR_BGR2GRAY);
     cv::Mat thresMin, thresMax;
-    cv::threshold(temp, thresMin, MinGray, 255, cv::THRESH_BINARY_INV);
-    cv::threshold(temp, thresMax, MaxGray, 255, cv::THRESH_BINARY);
+    cv::threshold(gray, thresMin, MinGray, 255, cv::THRESH_BINARY_INV);
+    cv::threshold(gray, thresMax, MaxGray, 255, cv::THRESH_BINARY);
     awcv::invertImage(thresMin + thresMax, OutMat);
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -74,7 +77,7 @@ void awcv::threshold(cv::Mat InMat, cv::Mat &OutMat, double MinGray, double MaxG
 //--------------------------------------------------------------------------------------------------------------------------------------
 void awcv::scaleImage(cv::Mat InMat, cv::Mat &OutMat, double MinGray, double MaxGray)
 {
-    cv::Mat temp = InMat.clone(); //值传递的Mat，形参和实参指向同一个地址，修改形参也会修改实参
+    cv::Mat temp = InMat.clone(); // 值传递的Mat，形参和实参指向同一个地址，修改形参也会修改实参
     if (temp.channels() == 3)
         cv::cvtColor(temp, temp, cv::COLOR_BGR2GRAY);
     // 根据公式计算
@@ -239,15 +242,53 @@ void awcv::logImage(cv::Mat InMat, cv::Mat &OutMat, float Const)
 //--------------------------------------------------------------------------------------------------------------------------------------
 void awcv::equalizeColor(const cv::Mat &InMat, cv::Mat &OutMat)
 {
-    cv::Mat ycrcb;
-    cv::cvtColor(InMat, ycrcb, cv::COLOR_BGR2YCrCb);
-    std::vector<cv::Mat> channels;
-    cv::split(ycrcb, channels);
+    // cv::Mat ycrcb;
+    // cv::cvtColor(InMat, ycrcb, cv::COLOR_BGR2YCrCb);
+    // std::vector<cv::Mat> channels;
+    // cv::split(ycrcb, channels);
 
-    // 只均衡Y通道
-    cv::equalizeHist(channels[0], channels[0]);
-    cv::merge(channels, ycrcb);
-    cv::cvtColor(ycrcb, OutMat, cv::COLOR_YCrCb2BGR);
+    // // 只均衡Y通道
+    // cv::equalizeHist(channels[0], channels[0]);
+    // cv::merge(channels, ycrcb);
+    // cv::cvtColor(ycrcb, OutMat, cv::COLOR_YCrCb2BGR);
+
+    cv::Mat Lab;
+    cv::cvtColor(InMat, Lab, cv::COLOR_BGR2Lab);
+    std::vector<cv::Mat> channels;
+    cv::split(Lab, channels);
+
+    cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE();
+    clahe->setClipLimit(2);
+    clahe->apply(channels[0], channels[0]);
+
+    cv::merge(channels, OutMat);
+    cv::cvtColor(OutMat, OutMat, cv::COLOR_Lab2BGR);
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 功能: 多重双边滤波
+// 参数:
+//			InMat:			输入图像
+//			OutMat:			输出图像
+//			Iter:			迭代次数
+//			D:				滤波直径，通常取值为0。
+//			SColor:			颜色空间过滤器的标准差，该值越大，说明像素跨越的颜色距离可以更远。
+//			SSpace:			坐标空间滤波器的标准差，该值越大，则空间邻域内像素权重越大，也就是滤波器的作用范围越大。
+//--------------------------------------------------------------------------------------------------------------------------------------
+void awcv::bilateralFilter(const cv::Mat &InMat, cv::Mat &OutMat, int Iter, int D, int SColor, int SSpace)
+{
+    if (Iter <= 0)
+        OutMat = InMat.clone();
+    cv::Mat bilateral, bilateral_temp;
+    cv::bilateralFilter(InMat, bilateral, D, SColor, SSpace);
+    bilateral_temp = bilateral.clone();
+    bilateral.release();
+    for (int i = 0; i < Iter - 1; i++)
+    {
+        cv::bilateralFilter(bilateral_temp, bilateral, D, SColor, SSpace);
+        bilateral_temp = bilateral.clone();
+        bilateral.release();
+    }
+    OutMat = bilateral_temp.clone();
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 // 功能:使用分水岭法分割图像
@@ -302,17 +343,20 @@ void awcv::equalizeColor(const cv::Mat &InMat, cv::Mat &OutMat)
 //			FfillMode:		填充模式(Simple:0, FixedRange:1, Gradient(floating range):2)
 //			Connectivity:	连通域模式（4 or 8）
 //--------------------------------------------------------------------------------------------------------------------------------------
-void awcv::regionGrowingWithSeed(cv::Mat InMat, cv::Point Seed,  cv::Mat &Mask, int LoDiff, int UpDiff, int FfillMode, int Connectivity)
+void awcv::regionGrowingWithSeed(cv::Mat InMat, cv::Point Seed, cv::Mat &Mask, int LoDiff, int UpDiff, int FfillMode, int Connectivity)
 {
-    if (Mask.empty()) { Mask = cv::Mat::zeros(InMat.rows + 2, InMat.cols + 2, CV_8UC1); }
-	int lo = FfillMode == 0 ? 0 : LoDiff;
-	int up = FfillMode == 0 ? 0 : UpDiff;
-	int flags = Connectivity + (255 << 8) + (FfillMode == 1 ? cv::FLOODFILL_FIXED_RANGE : 0);
+    if (Mask.empty())
+    {
+        Mask = cv::Mat::zeros(InMat.rows + 2, InMat.cols + 2, CV_8UC1);
+    }
+    int lo = FfillMode == 0 ? 0 : LoDiff;
+    int up = FfillMode == 0 ? 0 : UpDiff;
+    int flags = Connectivity + (255 << 8) + (FfillMode == 1 ? cv::FLOODFILL_FIXED_RANGE : 0);
 
-	cv::Rect ccomp;
-	// 这里实现区域生长法
-	int area = cv::floodFill(InMat, Mask, Seed, cv::Scalar(), &ccomp, cv::Scalar(lo, lo, lo), cv::Scalar(up, up, up), flags);
-	Mask = Mask(cv::Rect(0, 0, Mask.cols - 2, Mask.rows - 2));
+    cv::Rect ccomp;
+    // 这里实现区域生长法
+    int area = cv::floodFill(InMat, Mask, Seed, cv::Scalar(), &ccomp, cv::Scalar(lo, lo, lo), cv::Scalar(up, up, up), flags);
+    Mask = Mask(cv::Rect(0, 0, Mask.cols - 2, Mask.rows - 2));
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 // 功能: 使用roi的区域生长法
@@ -325,32 +369,35 @@ void awcv::regionGrowingWithSeed(cv::Mat InMat, cv::Point Seed,  cv::Mat &Mask, 
 //			FfillMode:		填充模式(Simple:0, FixedRange:1, Gradient(floating range):2)
 //			Connectivity:	连通域模式（4 or 8）
 //--------------------------------------------------------------------------------------------------------------------------------------
-void awcv::regionGrowingWithROI(cv::Mat InMat, cv::Rect ROI, cv::Mat& Mask, int LoDiff,int UpDiff,int FfillMode, int Connectivity)
+void awcv::regionGrowingWithROI(cv::Mat InMat, cv::Rect ROI, cv::Mat &Mask, int LoDiff, int UpDiff, int FfillMode, int Connectivity)
 {
-	if (Mask.empty()) { Mask = cv::Mat::zeros(InMat.rows + 2, InMat.cols + 2, CV_8UC1); }
-	// 选择9个点
-	int diffCol = ROI.width / 3;
-	int diffRow = ROI.height / 3;
-	std::vector<cv::Point> SeedPoints;
-	for (int row = 0; row < 3; row++)
-	{
-		for (int col = 0; col < 3; col++)
-		{
-			SeedPoints.push_back(cv::Point(ROI.x + (col * diffCol), ROI.y + (row * diffRow)));		// 种子点
-			// std::cout << "种子点:" << cv::Point(ROI.x + (col * diffCol), ROI.y + (row * diffRow)) << std::endl;
-		}
-	}
-	int lo = FfillMode == 0 ? 0 : LoDiff;
-	int up = FfillMode == 0 ? 0 : UpDiff;
-	int flags = Connectivity + (255 << 8) + (FfillMode == 1 ? cv::FLOODFILL_FIXED_RANGE : 0);
+    if (Mask.empty())
+    {
+        Mask = cv::Mat::zeros(InMat.rows + 2, InMat.cols + 2, CV_8UC1);
+    }
+    // 选择9个点
+    int diffCol = ROI.width / 3;
+    int diffRow = ROI.height / 3;
+    std::vector<cv::Point> SeedPoints;
+    for (int row = 0; row < 3; row++)
+    {
+        for (int col = 0; col < 3; col++)
+        {
+            SeedPoints.push_back(cv::Point(ROI.x + (col * diffCol), ROI.y + (row * diffRow))); // 种子点
+                                                                                               // std::cout << "种子点:" << cv::Point(ROI.x + (col * diffCol), ROI.y + (row * diffRow)) << std::endl;
+        }
+    }
+    int lo = FfillMode == 0 ? 0 : LoDiff;
+    int up = FfillMode == 0 ? 0 : UpDiff;
+    int flags = Connectivity + (255 << 8) + (FfillMode == 1 ? cv::FLOODFILL_FIXED_RANGE : 0);
 
-	cv::Rect ccomp;
-	for (std::vector<cv::Point>::iterator seed = SeedPoints.begin(); seed != SeedPoints.end(); seed++)
-	{
-		// 这里实现区域生长法
-		int area = cv::floodFill(InMat, Mask, *seed, cv::Scalar(), &ccomp, cv::Scalar(lo, lo, lo), cv::Scalar(up, up, up), flags);
-	}
-	Mask = Mask(cv::Rect(0, 0, Mask.cols - 2, Mask.rows - 2));
+    cv::Rect ccomp;
+    for (std::vector<cv::Point>::iterator seed = SeedPoints.begin(); seed != SeedPoints.end(); seed++)
+    {
+        // 这里实现区域生长法
+        int area = cv::floodFill(InMat, Mask, *seed, cv::Scalar(), &ccomp, cv::Scalar(lo, lo, lo), cv::Scalar(up, up, up), flags);
+    }
+    Mask = Mask(cv::Rect(0, 0, Mask.cols - 2, Mask.rows - 2));
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 // 功能: 使用roi的区域生长法
@@ -363,19 +410,22 @@ void awcv::regionGrowingWithROI(cv::Mat InMat, cv::Rect ROI, cv::Mat& Mask, int 
 //			FfillMode:		填充模式(Simple:0, FixedRange:1, Gradient(floating range):2)
 //			Connectivity:	连通域模式（4 or 8）
 //--------------------------------------------------------------------------------------------------------------------------------------
-void awcv::regionGrowing(cv::Mat InMat, std::vector<cv::Point> SeedPoints, cv::Mat& Mask, int LoDiff, int UpDiff, int FfillMode, int Connectivity)
+void awcv::regionGrowing(cv::Mat InMat, std::vector<cv::Point> SeedPoints, cv::Mat &Mask, int LoDiff, int UpDiff, int FfillMode, int Connectivity)
 {
-	if (Mask.empty()) { Mask = cv::Mat::zeros(InMat.rows + 2, InMat.cols + 2, CV_8UC1); }
-	int lo = FfillMode == 0 ? 0 : LoDiff;
-	int up = FfillMode == 0 ? 0 : UpDiff;
-	int flags = Connectivity + (255 << 8) + (FfillMode == 1 ? cv::FLOODFILL_FIXED_RANGE : 0);
+    if (Mask.empty())
+    {
+        Mask = cv::Mat::zeros(InMat.rows + 2, InMat.cols + 2, CV_8UC1);
+    }
+    int lo = FfillMode == 0 ? 0 : LoDiff;
+    int up = FfillMode == 0 ? 0 : UpDiff;
+    int flags = Connectivity + (255 << 8) + (FfillMode == 1 ? cv::FLOODFILL_FIXED_RANGE : 0);
 
-	cv::Rect ccomp;
-	for (std::vector<cv::Point>::iterator seed = SeedPoints.begin(); seed != SeedPoints.end(); seed++)
-	{
-		int area = cv::floodFill(InMat, Mask, *seed, cv::Scalar(), &ccomp, cv::Scalar(lo, lo, lo), cv::Scalar(up, up, up), flags);
-	}
-	Mask = Mask(cv::Rect(0, 0, Mask.cols - 2, Mask.rows - 2));
+    cv::Rect ccomp;
+    for (std::vector<cv::Point>::iterator seed = SeedPoints.begin(); seed != SeedPoints.end(); seed++)
+    {
+        int area = cv::floodFill(InMat, Mask, *seed, cv::Scalar(), &ccomp, cv::Scalar(lo, lo, lo), cv::Scalar(up, up, up), flags);
+    }
+    Mask = Mask(cv::Rect(0, 0, Mask.cols - 2, Mask.rows - 2));
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 // 功能:拆分图片的通道
@@ -536,7 +586,6 @@ void awcv::enhanceImageByMean(const cv::Mat &InMat, cv::Mat &OutMat, double Min,
         cv::cvtColor(InMat, InMat, cv::COLOR_BGR2GRAY);
     if (Min > 0 && Max > 0 && Max > Min)
     {
-
     }
     else if (Min == 0 && Max == 0)
     {
@@ -546,25 +595,25 @@ void awcv::enhanceImageByMean(const cv::Mat &InMat, cv::Mat &OutMat, double Min,
         cv::Mat mask_black; // cv::threshold(InMat, mask_m1, MeanGray, 255, cv::THRESH_BINARY_INV);
         cv::Mat mask_white; // cv::threshold(InMat, mask_m2, MeanGray, 255, cv::THRESH_BINARY);
         // 第一次
-        awcv::threshold(InMat, mask_black, 0, MeanGray);       // 求目标区间区域
-        awcv::threshold(InMat, mask_white, MeanGray, 255);     // 稍微丢失了点小数点后两位精度
+        awcv::threshold(InMat, mask_black, 0, MeanGray);   // 求目标区间区域
+        awcv::threshold(InMat, mask_white, MeanGray, 255); // 稍微丢失了点小数点后两位精度
         cv::Scalar meanB1, meanW1, devB1, devW1;
-        cv::meanStdDev(InMat, meanB1, devB1, mask_black);     // 第一次：black区间灰度均值方差
-        cv::meanStdDev(InMat, meanW1, devW1, mask_white);     // 第一次：white区间灰度均值方差
+        cv::meanStdDev(InMat, meanB1, devB1, mask_black); // 第一次：black区间灰度均值方差
+        cv::meanStdDev(InMat, meanW1, devW1, mask_white); // 第一次：white区间灰度均值方差
         // std::cout << "black1:" << meanB1[0] << std::endl;
         // std::cout << "white1:" << meanW1[0] << std::endl;
         // 第二次
         awcv::threshold(InMat, mask_black, 0, meanB1[0]);
         awcv::threshold(InMat, mask_white, meanW1[0], 255);
         cv::Scalar meanB2, meanW2, devB2, devW2;
-        cv::meanStdDev(InMat, meanB2, devB2, mask_black);     // 第二次：black区间灰度均值方差
-        cv::meanStdDev(InMat, meanW2, devW2, mask_white);     // 第二次：white区间灰度均值方差
+        cv::meanStdDev(InMat, meanB2, devB2, mask_black); // 第二次：black区间灰度均值方差
+        cv::meanStdDev(InMat, meanW2, devW2, mask_white); // 第二次：white区间灰度均值方差
         // std::cout << "black2:" << meanB2[0] << std::endl;
         // std::cout << "white2:" << meanW2[0] << std::endl;
         Min = meanB2[0] + devB2[0];
-        Max = meanW1[0] - 2*devB1[0];
+        Max = meanW1[0] - 2 * devB1[0];
     }
-    else 
+    else
     {
         // 错误
         return;
@@ -590,11 +639,14 @@ void awcv::enhanceImageByOTSU(const cv::Mat &InMat, cv::Mat &OutMat, int &Thres)
         cv::cvtColor(InMat, InMat, cv::COLOR_BGR2GRAY);
     if (Thres == 0)
     {
-        cv::Mat thres; double otsu = cv::threshold(InMat, thres, 0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
+        cv::Mat thres;
+        double otsu = cv::threshold(InMat, thres, 0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
         Thres = static_cast<int>(otsu);
     }
-    cv::Mat mask_black; awcv::threshold(InMat, mask_black, 0, Thres);
-    cv::Mat mask_white; awcv::threshold(InMat, mask_white, Thres, 255);
+    cv::Mat mask_black;
+    awcv::threshold(InMat, mask_black, 0, Thres);
+    cv::Mat mask_white;
+    awcv::threshold(InMat, mask_white, Thres, 255);
     cv::Scalar meanB1, meanW1, devB1, devW1;
     cv::meanStdDev(InMat, meanB1, devB1, mask_black);
     cv::meanStdDev(InMat, meanW1, devW1, mask_white);
@@ -604,8 +656,8 @@ void awcv::enhanceImageByOTSU(const cv::Mat &InMat, cv::Mat &OutMat, int &Thres)
     cv::meanStdDev(InMat, meanB2, devB2, mask_black);
     cv::meanStdDev(InMat, meanW2, devW2, mask_white);
     double Min = meanB2[0] + devB2[0];
-    double Max = meanW1[0] - 2*devB1[0];
-    
+    double Max = meanW1[0] - 2 * devB1[0];
+
     awcv::scaleImage(InMat, OutMat, Min, Max);
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -617,29 +669,31 @@ void awcv::enhanceImageByOTSU(const cv::Mat &InMat, cv::Mat &OutMat, int &Thres)
 //--------------------------------------------------------------------------------------------------------------------------------------
 cv::Mat awcv::getHistImage(const cv::Mat &InMat)
 {
-	int histogram[256] = { 0 };
-	int tmp = 0;
+    int histogram[256] = {0};
+    int tmp = 0;
 
-	for (int i = 0; i < InMat.rows; i++) {
-		for (int j = 0; j < InMat.cols; j++) {
-			tmp = InMat.at<uchar>(i, j);
-			histogram[tmp]++;
-		}
-	}
-	cv::Mat hist(1, 256, CV_32F, histogram);
-	double minVal = 0;
-	double maxVal = 0;
-	cv::minMaxLoc(hist, &minVal, &maxVal, 0, 0);
+    for (int i = 0; i < InMat.rows; i++)
+    {
+        for (int j = 0; j < InMat.cols; j++)
+        {
+            tmp = InMat.at<uchar>(i, j);
+            histogram[tmp]++;
+        }
+    }
+    cv::Mat hist(1, 256, CV_32F, histogram);
+    double minVal = 0;
+    double maxVal = 0;
+    cv::minMaxLoc(hist, &minVal, &maxVal, 0, 0);
 
-	cv::Mat histImage(255, 255, CV_8UC3, cv::Scalar::all(255));
-	int hpt = static_cast<uchar>(0.9 * hist.cols);
-	for (int i = 0; i < 255; i++)
-	{
-		float binVal = hist.at<float>(i);
-		int intensity = static_cast<int>(binVal * hpt / maxVal);
-		cv::line(histImage, cv::Point(i, hist.cols), cv::Point(i, hist.cols - intensity), cv::Scalar(255, 0, 0));
-	}
-	return histImage;
+    cv::Mat histImage(255, 255, CV_8UC3, cv::Scalar::all(255));
+    int hpt = static_cast<uchar>(0.9 * hist.cols);
+    for (int i = 0; i < 255; i++)
+    {
+        float binVal = hist.at<float>(i);
+        int intensity = static_cast<int>(binVal * hpt / maxVal);
+        cv::line(histImage, cv::Point(i, hist.cols), cv::Point(i, hist.cols - intensity), cv::Scalar(255, 0, 0));
+    }
+    return histImage;
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 // 下面是一些通用类的实现
