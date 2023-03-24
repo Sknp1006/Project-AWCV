@@ -137,6 +137,7 @@ inline void initDiffOfGaussianTrackbar()
 inline void initGaborFilterTrackbar()
 {
     cv::namedWindow("gaborFilter", cv::WINDOW_NORMAL);
+    cv::namedWindow("gaborFilterThres", cv::WINDOW_NORMAL);
     cv::createTrackbar("KernelSize", "gaborFilter", 0, 50, __TrackbarCallback);
     cv::createTrackbar("Sigma", "gaborFilter", 0, 360, __TrackbarCallback);
     cv::createTrackbar("Theta", "gaborFilter", 0, 180, __TrackbarCallback);
@@ -175,6 +176,8 @@ inline void initEnhanceImageByOTSU()
 inline void initBilateralFilter()
 {
     cv::namedWindow("bilateralFilter", cv::WINDOW_NORMAL);
+    int iter = 1;
+    cv::createTrackbar("iter", "bilateralFilter", &iter, 10, __TrackbarCallback);
     cv::createTrackbar("d", "bilateralFilter", 0, 50, __TrackbarCallback);
     cv::createTrackbar("sigmaColor", "bilateralFilter", 0, 255, __TrackbarCallback);
     cv::createTrackbar("sigmaSpace", "bilateralFilter", 0, 255, __TrackbarCallback);
@@ -185,6 +188,16 @@ inline void initRegionGrowing()
     cv::namedWindow("regionGrowing", cv::WINDOW_NORMAL);
     cv::createTrackbar("lo_diff", "regionGrowing", &loDiff, 255, 0);
     cv::createTrackbar("up_diff", "regionGrowing", &upDiff, 255, 0);
+}
+inline void initMeanShiftColor()
+{
+    int spatialRad = 1;
+    int colorRad = 1;
+    int maxPyrLevel = 1;
+    cv::namedWindow("meanShiftColor", cv::WINDOW_NORMAL);
+    cv::createTrackbar("spatialRad", "meanShiftColor", &spatialRad, 200, 0);
+    cv::createTrackbar("colorRad", "meanShiftColor", &colorRad, 200, 0);
+    cv::createTrackbar("maxPyrLevel", "meanShiftColor", &maxPyrLevel, 15, 0);
 }
 #pragma endregion
 
@@ -261,6 +274,7 @@ inline void t_GLCM(cv::Mat InMat, awcv::GLCM gl, cv::Mat &OutMat)
     cv::Mat res = gl.getGLCMFeatures();
     std::cout << res << std::endl;
 }
+// 线性灰度变换
 inline void t_linearGrayLevelTrans(cv::Mat InMat, cv::Mat &OutMat)
 {
     int th1 = cv::getTrackbarPos("Th1", "linearGrayLevelTrans");
@@ -270,6 +284,7 @@ inline void t_linearGrayLevelTrans(cv::Mat InMat, cv::Mat &OutMat)
     awcv::linearGrayLevelTrans(InMat, OutMat, th1, th2, goal1, goal2);
     cv::imshow("linearGrayLevelTrans", OutMat);
 }
+// 对数变换
 inline void t_logImage(cv::Mat InMat, cv::Mat &OutMat)
 {
     float Const = cv::getTrackbarPos("Const", "logImage") / static_cast<float>(10);
@@ -277,6 +292,7 @@ inline void t_logImage(cv::Mat InMat, cv::Mat &OutMat)
     // std::cout << OutMat << std::endl;
     cv::imshow("logImage", OutMat);
 }
+// 图像增强
 inline void t_enhanceImageByMean(cv::Mat InMat, cv::Mat &OutMat)
 {
     double min = cv::getTrackbarPos("MinBlack", "enhanceImageByMean");
@@ -284,18 +300,21 @@ inline void t_enhanceImageByMean(cv::Mat InMat, cv::Mat &OutMat)
     awcv::enhanceImageByMean(InMat, OutMat, min, max);
     cv::imshow("enhanceImageByMean", OutMat);
 }
+// 图像增强
 inline void t_enhanceImageByOTSU(cv::Mat InMat, cv::Mat &OutMat)
 {
     int thres = cv::getTrackbarPos("thres", "enhanceImageByOTSU");
     awcv::enhanceImageByOTSU(InMat, OutMat, thres);
     cv::imshow("enhanceImageByOTSU", OutMat);
 }
+// 双边滤波
 inline void t_bilateralFilter(cv::Mat InMat, cv::Mat &OutMat)
 {
+    int iter = cv::getTrackbarPos("iter", "bilateralFilter");
     int d = cv::getTrackbarPos("d", "bilateralFilter");
     int sigmaColor = cv::getTrackbarPos("sigmaColor", "bilateralFilter");
     int sigmaSpace = cv::getTrackbarPos("sigmaSpace", "bilateralFilter");
-    cv::bilateralFilter(InMat, OutMat, d, sigmaColor, sigmaSpace, cv::BORDER_DEFAULT);
+    awcv::bilateralFilter(InMat, OutMat, iter, d, sigmaColor, sigmaSpace);
     cv::imshow("bilateralFilter", OutMat);
 }
 //inline void t_regionGrowing(cv::Mat InMat, cv::Point Seed, cv::Mat &OutMat)
@@ -305,6 +324,14 @@ inline void t_bilateralFilter(cv::Mat InMat, cv::Mat &OutMat)
 //    awcv::regionGrowing(InMat, OutMat, Seed, loDiff, upDiff);
 //    cv::imshow("regionGrowing", OutMat);
 //}
+inline void t_meanShiftColor(cv::Mat InMat, cv::Mat &OutMat)
+{
+    int spatialRad = cv::getTrackbarPos("spatialRad", "meanShiftColor");
+    int colorRad = cv::getTrackbarPos("colorRad", "meanShiftColor");
+    int maxPyrLevel = cv::getTrackbarPos("maxPyrLevel", "meanShiftColor");
+    cv::pyrMeanShiftFiltering(InMat, OutMat, spatialRad, colorRad, maxPyrLevel);
+    cv::imshow("meanShiftColor", OutMat);
+}
 #pragma endregion
 
 #pragma region 调用测试算法
