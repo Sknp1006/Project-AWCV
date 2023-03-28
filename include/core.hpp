@@ -147,6 +147,9 @@ class GLCM
     cv::Mat glcm_135;
 };
 #pragma endregion
+
+void calcHessianMatrix(const cv::Mat &InMat, cv::Mat &Hxx, cv::Mat &Hyy, cv::Mat &Hxy);     // 计算Hessian矩阵
+
 }; // namespace awcv
 
 //--------------------------------------------------------------------------------------------------------------------------------------

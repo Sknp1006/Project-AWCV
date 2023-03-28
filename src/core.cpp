@@ -841,5 +841,26 @@ awcv::GLCM::GLCMDATA awcv::GLCM::CalcGLCMDATA(cv::Mat GLCMMAT)
     }
     return temp;
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 功能:计算图像的Hessian矩阵
+// 参数:
+//          InMat:          输入图像
+//          Hxx:            输出Hessian矩阵Hxx
+//          Hyy:            输出Hessian矩阵Hyy
+//          Hxy:            输出Hessian矩阵Hxy
+//--------------------------------------------------------------------------------------------------------------------------------------
+void awcv::calcHessianMatrix(const cv::Mat &InMat, cv::Mat &Hxx, cv::Mat &Hyy, cv::Mat &Hxy)
+{
+    cv::Mat kernel_x = (cv::Mat_<double>(1, 3) << -1, 0, 1);
+    cv::Mat kernel_y = (cv::Mat_<double>(3, 1) << -1, 0, 1);
+    cv::Mat kernel_xx = (cv::Mat_<double>(1, 3) << 1, -2, 1);
+    cv::Mat kernel_yy = (cv::Mat_<double>(3, 1) << 1, -2, 1);
+    cv::Mat kernel_xy = (cv::Mat_<double>(3, 3) << 1, 0, -1, 0, 0, 0, -1, 0, 1);
+
+    cv::filter2D(InMat, Hxx, CV_64F, kernel_xx);
+    cv::filter2D(InMat, Hyy, CV_64F, kernel_yy);
+    cv::filter2D(InMat, Hxy, CV_64F, kernel_xy);
+}
+
 
 #pragma endregion
