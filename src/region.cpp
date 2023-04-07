@@ -1,6 +1,9 @@
 #include "region.hpp"
+#include <memory>
 #include <opencv2/core/types.hpp>
 #include <opencv2/imgproc.hpp>
+#include <Eigen/Dense>
+#include <opencv2/core/eigen.hpp>
 #pragma region Region
 //--------------------------------------------------------------------------------------------------------------------------------------
 // 功能:Region类构造函数
@@ -156,13 +159,31 @@ std::map<int, awcv::Region> awcv::connection(cv::Mat ThresMat)
     int RegionNum = cv::connectedComponentsWithStats(ThresMat, Labels, Stats, Centroids);
     if (RegionNum > 1)
     {
+        // Eigen::MatrixXi LabelsMat(Labels.rows, Labels.cols);
+        std::shared_ptr<Eigen::MatrixXi> LabelsMat = std::make_shared<Eigen::MatrixXi>(Labels.rows, Labels.cols);
+        cv::cv2eigen(Labels, (*LabelsMat));
         for (int i = 1; i < RegionNum; i++)
         {
-            nc::NdArray<int> LabelsArray = Mat2NdArray<int>(Labels);     // labels转NdArray
-            nc::NdArray<int> mask = nc::zeros<int>(LabelsArray.shape()); // 空矩阵
-            mask.putMask(LabelsArray == i, 255);                         // 将对应连通域标记为255
-            cv::Mat connectedRegion = NdArray2Mat(mask);
-            connectedRegion.convertTo(connectedRegion, CV_8U); // 第i个连通域Mat
+            {
+            // nc::NdArray<int> LabelsArray = Mat2NdArray<int>(Labels);     // labels转NdArray
+            // nc::NdArray<int> mask = nc::zeros<int>(LabelsArray.shape()); // 空矩阵
+            // mask.putMask(LabelsArray == i, 255);                         // 将对应连通域标记为255
+            // cv::Mat connectedRegion = NdArray2Mat(mask);
+            
+            // Eigen::MatrixXi mask = Eigen::MatrixXi::Zero(Labels.rows, Labels.cols);
+            // mask = (LabelsMat.array() == i).cast<int>() * 255;      // 将对应连通域标记为255
+            // // std::cout << "mask: " << mask << std::endl;
+            // cv::Mat connectedRegion;
+            // cv::eigen2cv(mask, connectedRegion);                    // 将Eigen矩阵转换为OpenCV矩阵
+            // connectedRegion.convertTo(connectedRegion, CV_8U);      // 第i个连通域Mat
+            }
+
+            std::shared_ptr<Eigen::MatrixXi> mask = std::make_shared<Eigen::MatrixXi>(Labels.rows, Labels.cols);
+            (*mask).setZero();
+            (*mask) = ((*LabelsMat).array() == i).cast<int>() * 255;        // 将对应连通域标记为255
+            cv::Mat connectedRegion;
+            cv::eigen2cv((*mask), connectedRegion);                         // 将Eigen矩阵转换为OpenCV矩阵
+            connectedRegion.convertTo(connectedRegion, CV_8U);              // 第i个连通域Mat
 
             cv::Point2f centroid = cv::Point2f(static_cast<float>(Centroids.at<double>(i, 0)), static_cast<float>(Centroids.at<double>(i, 1)));
             Region Aregion = Region(connectedRegion, centroid); // 区域类
