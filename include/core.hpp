@@ -148,8 +148,7 @@ class GLCM
 };
 #pragma endregion
 
-void calcHessianMatrix(const cv::Mat &InMat, cv::Mat &Hxx, cv::Mat &Hyy, cv::Mat &Hxy);     // 计算Hessian矩阵
-
+void calcHessianMatrix(const cv::Mat &InMat, cv::Mat &Hxx, cv::Mat &Hyy, cv::Mat &Hxy);     // 计算图像的二阶偏导数
 }; // namespace awcv
 
 //--------------------------------------------------------------------------------------------------------------------------------------
