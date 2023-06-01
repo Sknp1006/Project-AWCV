@@ -4,11 +4,11 @@
 
 #include "core.hpp"
 #include "dft.hpp"
-#include "face.hpp"
+// #include "face.hpp"
 #include "file.hpp"
-#include "opticalFlow.hpp"
+// #include "opticalFlow.hpp"
 #include "region.hpp"
-#include "sfm.hpp"
-#include "moire/moire.hpp"
+// #include "sfm.hpp"
+// #include "moire/moire.hpp"
 
 #endif
