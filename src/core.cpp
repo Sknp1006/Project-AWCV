@@ -508,27 +508,6 @@ void awcv::LBP(cv::Mat InMat, cv::Mat &OutMat)
     OutMat = temp.clone();
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
-// 功能:高斯背景估计算法
-// 参数:
-//          InMat:          输入图像
-//          OutMat;         输出图像
-//--------------------------------------------------------------------------------------------------------------------------------------
-void awcv::estimateBackgroundIllumination(cv::Mat InMat, cv::Mat &OutMat)
-{
-    int width = InMat.cols;
-    int height = InMat.rows; // 获取图像大小
-    cv::Mat filter;
-    awcv::genLowpassFilter(filter, cv::Size(width, height), cv::Point(width / 2, height / 2), 50,
-                           FILTER_GLPF); // 生成高斯频域滤波器
-    if (InMat.channels() == 3)
-        cv::cvtColor(InMat, InMat, cv::COLOR_BGR2GRAY);
-    DFTMAT dft, idft, afterCon;
-    DFT(InMat, dft);                  // 傅里叶变换
-    convolDFT(dft, filter, afterCon); // 频域卷积
-    IDFT(afterCon, idft);             // 傅里叶逆变换
-    OutMat = idft.getMat().clone();
-}
-//--------------------------------------------------------------------------------------------------------------------------------------
 // 功能:图片颜色翻转
 // 参数:
 //          InMat:          输入图像

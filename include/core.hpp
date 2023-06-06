@@ -7,10 +7,6 @@
 #include <NumCpp.hpp>
 #include <opencv2/opencv.hpp>
 
-#include "dft.hpp"
-
-typedef awcv::DFTMAT DFTMAT;
-
 // 通用图像处理方法
 namespace awcv
 {
@@ -81,8 +77,6 @@ void decompose3(const cv::Mat &InMat, std::vector<cv::Mat> &OutArray, DecomTypes
 void diffOfGaussian(const cv::Mat &InMat, cv::Mat &OutMat, cv::Size KSize = cv::Size(3, 3), double Sigma = 0.3, double SigFactor = 1.5);
 // 提取LBP纹理
 void LBP(cv::Mat InMat, cv::Mat &OutMat);
-// 高斯背景估计法
-void estimateBackgroundIllumination(cv::Mat InMat, cv::Mat &OutMat);
 // 图片颜色翻转
 void invertImage(cv::Mat InMat, cv::Mat &OutMat);
 // gabor滤波器

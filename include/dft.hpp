@@ -3,7 +3,7 @@
 #ifndef H_AWCV_DFT
 #define H_AWCV_DFT
 
-#include <opencv2/opencv.hpp>
+#include "core.hpp"
 
 namespace awcv
 {
@@ -100,6 +100,8 @@ void genLowpassFilter(cv::Mat &LFilter,
                       int n = -1);
 // 图像中心化
 void dftShift(cv::Mat &InOutMat);
+// 高斯背景估计法
+void estimateBackgroundIllumination(cv::Mat InMat, cv::Mat &OutMat);
 } // namespace awcv
 
 #endif
