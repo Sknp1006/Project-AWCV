@@ -38,15 +38,11 @@ message("CMAKE_CURRENT_SOURCE_DIR: " ${CMAKE_CURRENT_SOURCE_DIR})    # 项目路
 
 set(AWCV_INCLUDE_HEADERS 
     include/core.hpp
-    include/dft.hpp
-    include/face.hpp
     include/region.hpp
     include/file.hpp)
 
 set(AWCV_SRCS 
     src/core.cpp
-    src/dft.cpp
-    src/face.cpp
     src/region.cpp
     src/file.cpp)
 
