@@ -1,4 +1,7 @@
 #include "file.hpp"
+#include <vector>
+#include <algorithm>
+#include <filesystem>
 //--------------------------------------------------------------------------------------------------------------------------------------
 //												FileHandle构造函数
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -28,22 +31,22 @@ void awcv::FileHandle::getFiles(std::string Path, std::string Extension, bool Re
 {
     std::vector<std::string> files;                                                                 //文件容器
     std::vector<std::string> folder;                                                                //文件夹容器  
-    boost::filesystem::path Root(Path);
-    if (!boost::filesystem::exists(Root))
+    std::filesystem::path Root(Path);
+    if (!std::filesystem::exists(Root))
     {
         printf("The file path doesn't exist: %s", Root.string().c_str());                           //文件路径不存在
     }
-    boost::filesystem::directory_iterator endIter;
-    for (boost::filesystem::directory_iterator Iter(Root); Iter != endIter; Iter++)                 //文件迭代器
+    std::filesystem::directory_iterator endIter;
+    for (std::filesystem::directory_iterator Iter(Root); Iter != endIter; Iter++)                 //文件迭代器
     {
-        if (boost::filesystem::is_directory(*Iter)) 
+        if (std::filesystem::is_directory(*Iter)) 
         {
             if (Recursion)
             {
                 folder.push_back((*Iter).path().string());                                          //待遍历文件夹
             }
         }
-        else if (boost::filesystem::is_regular_file(*Iter) && Iter->path().extension() == Extension)
+        else if (std::filesystem::is_regular_file(*Iter) && Iter->path().extension() == Extension)
         {
             files.push_back((*Iter).path().string());
         }

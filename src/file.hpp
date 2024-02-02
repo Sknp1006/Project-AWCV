@@ -2,9 +2,8 @@
 #ifndef H_AWCV_FILE
 #define H_AWCV_FILE
 
-#include <algorithm>
-#include <boost/filesystem.hpp>
 #include <iostream>
+#include <vector>
 
 namespace awcv
 {
@@ -14,7 +13,7 @@ namespace awcv
 typedef std::vector<std::vector<std::string>> FilesVector; // 文件容器
 class FileHandle
 {
-  public:
+public:
     FileHandle();
     FileHandle(std::string Path, std::string Extension, bool Recursion = false);
     ~FileHandle();
@@ -22,7 +21,7 @@ class FileHandle
     void getFiles(std::string Path, std::string Extension, bool Recursion = false); // 获取文件
     FilesVector getFilesVector();
 
-  private:
+private:
     FilesVector filesVector; // 文件列表
     static bool GreaterEqSort(std::string filePath1, std::string filePath2);
     static bool LessSort(std::string filePath1, std::string filePath2);

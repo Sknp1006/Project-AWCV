@@ -6,7 +6,7 @@
 #define Aw_DEBUG 1 // DEBUG开关
 //--------------------------------------------------------------------------------------------------------------------------------------
 #include <algorithm>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <opencv2/ml.hpp>

@@ -25,7 +25,7 @@ MoirePatternDetector::~MoirePatternDetector()
 //--------------------------------------------------------------------------------------------------------------------------------------
 void MoirePatternDetector::loadModelFile(std::string ModelFile)
 {
-    if (!boost::filesystem::exists(ModelFile))
+    if (!std::filesystem::exists(ModelFile))
     {
         printf("SVM模型文件路径错误: %s", ModelFile.c_str());
         return;

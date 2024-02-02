@@ -30,7 +30,7 @@ awcv::sfm::SFM::~SFM()
 void awcv::sfm::SFM::loadCameraParam(std::string FilePath)
 {
     // 判断文件是否存在
-    if (!boost::filesystem::exists(boost::filesystem::path(FilePath)))
+    if (!std::filesystem::exists(std::filesystem::path(FilePath)))
     {
         fprintf(stderr, "相机内参文件不存在：%s", FilePath.c_str());
         return;
@@ -49,7 +49,7 @@ void awcv::sfm::SFM::loadCameraParam(std::string FilePath)
 void awcv::sfm::SFM::loadTracks(std::string FilePath, int N_Frames, int N_Tracks)
 {
     // 判断文件是否存在
-    if (!boost::filesystem::exists(boost::filesystem::path(FilePath)))
+    if (!std::filesystem::exists(std::filesystem::path(FilePath)))
     {
         fprintf(stderr, "跟踪点文件不存在：%s", FilePath.c_str());
         return;
