@@ -176,7 +176,7 @@ std::map<int, awcv::Region> awcv::connection(const cv::Mat &ThresMat)
 /// @brief 获取最大的连通域
 /// @param Regions 连通域字典
 /// @return 面积最大的连通域
-awcv::Region awcv::getMaxAreaRegion(const std::map<int, awcv::Region>& Regions)
+awcv::Region awcv::getMaxAreaRegion(std::map<int, awcv::Region>& Regions)
 {
     int MaxIndex = 0;
     double MaxArea = 0;
@@ -199,7 +199,7 @@ awcv::Region awcv::getMaxAreaRegion(const std::map<int, awcv::Region>& Regions)
 /// @param MinArea 最小面积
 /// @param MaxArea 最大面积
 /// @return 满足条件的连通域
-std::map<int, awcv::Region> awcv::filterRegionByArea(const std::map<int, awcv::Region>& Regions, float MinArea, float MaxArea)
+std::map<int, awcv::Region> awcv::filterRegionByArea(std::map<int, awcv::Region>& Regions, float MinArea, float MaxArea)
 {
     std::map<int, awcv::Region> _Regions;
     for (std::map<int, awcv::Region>::iterator R = Regions.begin(); R != Regions.end(); R++)

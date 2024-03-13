@@ -48,7 +48,7 @@
 /* #undef HAVE_D3D9 */
 
 /* Eigen Matrix & Linear Algebra Library */
-/* #undef HAVE_EIGEN */
+#define HAVE_EIGEN
 
 /* Geospatial Data Abstraction Library */
 /* #undef HAVE_GDAL */
@@ -60,13 +60,13 @@
 /* #undef HAVE_VULKAN */
 
 /* Define to 1 if you have the <inttypes.h> header file. */
-#define HAVE_INTTYPES_H 1
+/* #undef HAVE_INTTYPES_H */
 
 /* Intel Integrated Performance Primitives */
-/* #undef HAVE_IPP */
-/* #undef HAVE_IPP_ICV */
-/* #undef HAVE_IPP_IW */
-/* #undef HAVE_IPP_IW_LL */
+#define HAVE_IPP
+#define HAVE_IPP_ICV
+#define HAVE_IPP_IW
+#define HAVE_IPP_IW_LL
 
 /* JPEG-2000 codec */
 #define HAVE_OPENJPEG
@@ -98,7 +98,7 @@
 /* #undef HAVE_OPENCL_D3D11_NV */
 
 /* OpenEXR codec */
-/* #undef HAVE_OPENEXR */
+#define HAVE_OPENEXR
 
 /* OpenGL support*/
 /* #undef HAVE_OPENGL */

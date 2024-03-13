@@ -5,7 +5,7 @@
 #define H_AWCV_CORE
 
 #include <NumCpp.hpp>
-#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
 
 // 通用图像处理方法
 namespace awcv

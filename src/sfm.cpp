@@ -196,11 +196,8 @@ void awcv::sfm::SFM::show(std::vector<cv::Mat> Rs_est, std::vector<cv::Mat> Ts_e
                 cv::Affine3d point_pose(cv::Mat::eye(3, 3, CV_64F), point);
 
                 char buffer[50];
-                #if __APPLE__
-                    snprintf(buffer, sizeof(buffer), "%d", static_cast<int>(i));
-                # else
-                    sprintf_s(buffer, "%d", static_cast<int>(i));
-                #endif
+                snprintf(buffer, sizeof(buffer), "%d", static_cast<int>(i));
+
                 
 
                 cv::viz::WCube cube_widget(cv::Point3f(0.1, 0.1, 0.0), cv::Point3f(0.0, 0.0, -0.1), true, cv::viz::Color::blue());

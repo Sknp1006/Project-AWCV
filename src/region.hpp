@@ -44,8 +44,8 @@ class Region
 // 分割连通域
 std::map<int, Region> connection(const cv::Mat &ThresMat);
 // 获取最大的连通域
-Region getMaxAreaRegion(const std::map<int, Region>& Regions);
-std::map<int, Region> filterRegionByArea(const std::map<int, awcv::Region>& Regions, float MinArea, float MaxArea = 99999.0f);
+Region getMaxAreaRegion(std::map<int, Region>& Regions);
+std::map<int, Region> filterRegionByArea(std::map<int, awcv::Region>& Regions, float MinArea, float MaxArea = 99999.0f);
 // 计算区域质心
 std::vector<cv::Point2f> calcCentroid(const std::vector<std::vector<cv::Point>>& Contours);
 } // namespace awcv
