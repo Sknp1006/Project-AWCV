@@ -5,6 +5,7 @@
 > 不要在嵌入式平台上使用，部分opencv特性不支持arm64平台，改为在wsl下开发
 - ~~硬件：Friendly NanoPi-R6S~~
 - ~~固件：rk3588-usb-debian-bullseye-minimal-6.1-arm64-20240131~~
+- wsl: Ubuntu-22.04
 
 
 ## 第三方依赖
